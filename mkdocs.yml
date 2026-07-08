@@ -1,7 +1,7 @@
 site_name: Limitless Organizer Tracker
 site_description: Tracks Limitless TCG organizer-application status and platform-wide organizer onboarding activity.
-repo_url: https://github.com/GenNetEng/limitless-organizer-tracker
-repo_name: GenNetEng/limitless-organizer-tracker
+repo_url: https://github.com/badconfigstudios/limitless-organizer-tracker
+repo_name: badconfigstudios/limitless-organizer-tracker
 edit_uri: edit/main/docs/
 
 theme:

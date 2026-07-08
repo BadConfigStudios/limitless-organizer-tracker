@@ -2,7 +2,7 @@ namespace: limitless
 
 backend:
   image:
-    repository: ghcr.io/genneteng/limitless-organizer-tracker/backend
+    repository: ghcr.io/badconfigstudios/limitless-organizer-tracker/backend
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -14,7 +14,7 @@ backend:
 
 frontend:
   image:
-    repository: ghcr.io/genneteng/limitless-organizer-tracker/frontend
+    repository: ghcr.io/badconfigstudios/limitless-organizer-tracker/frontend
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -22,7 +22,7 @@ frontend:
 
 docs:
   image:
-    repository: ghcr.io/genneteng/limitless-organizer-tracker/docs
+    repository: ghcr.io/badconfigstudios/limitless-organizer-tracker/docs
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -30,7 +30,7 @@ docs:
 
 worker:
   image:
-    repository: ghcr.io/genneteng/limitless-organizer-tracker/worker
+    repository: ghcr.io/badconfigstudios/limitless-organizer-tracker/worker
     tag: latest
     pullPolicy: Always
 
