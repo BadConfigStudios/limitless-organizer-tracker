@@ -221,6 +221,33 @@ def test_build_beat_schedule_deletes_stale_entries(mock_get_redis, MockEntry):
 
 @patch("app.celery_app.RedBeatSchedulerEntry")
 @patch("app.celery_app.get_redis")
+def test_build_beat_schedule_deletes_legacy_resubmit_application_entries(mock_get_redis, MockEntry):
+    """Phase 54 (#152) migration: real production Redis holds pre-existing
+    resubmit-application-* entries from before the reminder rename; these must
+    still get swept up as stale even though the new schedule only produces
+    resubmit-reminder-* names."""
+    from app.celery_app import build_beat_schedule
+
+    mock_redis = MagicMock()
+    mock_redis.smembers.return_value = {"resubmit-application-0900", "resubmit-application-2100"}
+    mock_redis.pipeline.return_value = MagicMock()
+    mock_get_redis.return_value = mock_redis
+
+    mock_old_entry = MagicMock()
+    MockEntry.from_key.return_value = mock_old_entry
+    MockEntry.return_value = MagicMock()
+
+    config = _default_config()
+    build_beat_schedule(MagicMock(), config)
+
+    deleted_keys = [call.args[0] for call in MockEntry.from_key.call_args_list]
+    assert "redbeat:resubmit-application-0900" in deleted_keys
+    assert "redbeat:resubmit-application-2100" in deleted_keys
+    assert mock_old_entry.delete.call_count == 2
+
+
+@patch("app.celery_app.RedBeatSchedulerEntry")
+@patch("app.celery_app.get_redis")
 def test_build_beat_schedule_tolerates_missing_old_entries(mock_get_redis, MockEntry):
     from app.celery_app import build_beat_schedule
 

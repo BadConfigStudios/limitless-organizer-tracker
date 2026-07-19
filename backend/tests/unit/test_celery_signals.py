@@ -145,3 +145,28 @@ def test_on_beat_init_does_not_crash_when_redis_unavailable(
 
     with patch("app.celery_signals.SessionLocal", db_session_factory):
         on_beat_init(sender=sender)
+
+
+@patch("app.celery_app.build_beat_schedule", side_effect=Exception("Redis down"))
+@patch("app.config_db.get_effective_config")
+def test_on_beat_init_logs_visible_event_when_schedule_rebuild_fails(
+    mock_get_config, mock_build, db_session_factory
+):
+    """A failed startup rebuild must be visible in the app's own event log (#152),
+    not just the celery-beat process logger — otherwise a stale schedule (e.g. one
+    still auto-dispatching a task the operator believes was walked back) can persist
+    silently after a deploy."""
+    from app.db.models import EventLog
+
+    mock_get_config.return_value = {"key": "value"}
+    sender = MagicMock()
+
+    with patch("app.celery_signals.SessionLocal", db_session_factory):
+        on_beat_init(sender=sender)
+
+    with db_session_factory() as session:
+        events = session.query(EventLog).filter(
+            EventLog.event_type == "beat.schedule_rebuild_failed"
+        ).all()
+        assert len(events) == 1
+        assert events[0].severity == "ERROR"

@@ -3,7 +3,7 @@ import respx
 
 import app.tasks.resubmit_tasks as resubmit_tasks
 from app.celery_app import celery_app
-from app.db.models import EventLog
+from app.db.models import EventLog, ResubmissionEvent
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/123/abc"
 
@@ -31,7 +31,14 @@ def test_resubmit_reminder_task_posts_discord_notice_and_logs_event(monkeypatch,
 
 
 def test_resubmit_reminder_task_does_not_perform_resubmission(monkeypatch, db_session_factory):
-    """The reminder task must never call authenticated_page/resubmit_application (no auto-resubmit, #152)."""
+    """The reminder task must never perform an actual resubmission (no auto-resubmit, #152).
+
+    Patches every entry point resubmit_application_task uses to reach the scraper
+    (authenticated_page, resubmit_application) so a future refactor that routes the
+    reminder through any of them fails loudly, and additionally asserts no
+    ResubmissionEvent row is created — the outcome-level invariant, independent of
+    which internal function would have been called.
+    """
     monkeypatch.setattr("app.db.session.SessionLocal", db_session_factory)
     monkeypatch.setattr(resubmit_tasks.settings, "discord_webhook_url", "")
 
@@ -39,8 +46,13 @@ def test_resubmit_reminder_task_does_not_perform_resubmission(monkeypatch, db_se
         raise AssertionError("resubmit_reminder_task must not perform an actual resubmission")
 
     monkeypatch.setattr(resubmit_tasks, "authenticated_page", _fail_if_called)
+    monkeypatch.setattr(resubmit_tasks, "resubmit_application", _fail_if_called)
+    monkeypatch.setattr(resubmit_tasks, "record_resubmission", _fail_if_called)
 
     celery_app.conf.task_always_eager = True
     celery_app.conf.task_eager_propagates = True
 
     resubmit_tasks.resubmit_reminder_task.delay()
+
+    with db_session_factory() as session:
+        assert session.query(ResubmissionEvent).count() == 0

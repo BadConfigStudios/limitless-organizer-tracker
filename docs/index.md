@@ -4,9 +4,10 @@ Limitless Organizer Tracker is an always-running service that does two
 things for a [Limitless TCG](https://play.limitlesstcg.com) tournament
 organizer:
 
-1. **Tracks an organizer-application's status** on a schedule, resubmits it
-   1–2 times a day to take advantage of Limitless's LIFO-favoring review
-   process, and notifies a Discord channel on each resubmission.
+1. **Tracks an organizer-application's status** on a schedule, sends a
+   Discord reminder 1–2 times a day to take advantage of Limitless's
+   LIFO-favoring review process, and lets the user trigger a manual
+   resubmission (which notifies a Discord channel on completion).
 2. **Tracks platform-wide organizer onboarding activity** — ingesting
    tournament data to determine when organizers across all games become
    active, fitting a regression to the onboarding rate, and projecting how
