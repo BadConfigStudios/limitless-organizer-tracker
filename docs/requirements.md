@@ -8,10 +8,13 @@ Tracker, and maps them to the MVPs and build phases that implement them.
 
 - **BR1**: Provide visibility into organizer-application throughput
   (status-check history, outcomes) that Limitless does not report on.
-- **BR2**: Maximize approval likelihood by automating frequent, scheduled
-  resubmission per Limitless's LIFO-favoring review process, with a Discord
-  notification per resubmission sent to the user's own server (for manual
-  copy/paste into the organizer Discord, matching the existing manual habit).
+- **BR2**: Maximize approval likelihood by prompting frequent, deliberate
+  resubmission per Limitless's LIFO-favoring review process — a scheduled
+  Discord reminder plus a one-click manual trigger, rather than unattended
+  automation (walked back in Phase 54 after 4 weeks of automated resubmission
+  showed no measurable benefit) — with a Discord notification per resubmission
+  sent to the user's own server (for manual copy/paste into the organizer
+  Discord, matching the original manual habit).
 - **BR3**: Provide visibility into platform-wide organizer growth — how many
   new organizers (across all games) become active each week/month, based on
   each organizer's first tournament date — and estimate how long a new
@@ -27,8 +30,8 @@ Tracker, and maps them to the MVPs and build phases that implement them.
 |----|-------------|--------|-----------------|
 | FR1 | Log into play.limitlesstcg.com via Playwright using stored username/password, persisting session for reuse | BR1, BR2 | **Done — Phase 5** (`app/scraper/browser.py`) |
 | FR2 | Check organizer/organization application status on a configurable schedule; record each check as a timestamped datapoint (status enum + raw text) | BR1 | **Done — Phase 6** (`app/tasks/status_tasks.py`, `check_application_status_task`, beat schedule via `application_status_check_interval_hours`) |
-| FR3 | Resubmit the organization application 1-2x/day on a configurable schedule | BR2 | **Done — Phase 6** (`app/tasks/resubmit_tasks.py`, `resubmit_application_task`, beat schedule via `resubmit_times_utc`) |
-| FR4 | Post a Discord notification (to the user's own server, via `DISCORD_WEBHOOK_URL`) when a resubmission occurs, for manual copy/paste into the organizer Discord | BR2 | **Done — Phase 5/6** (`app/notifications/discord.py`; wired into `resubmit_application_task`. Phase 6 also adds a status-change notice for FR2.) |
+| FR3 | Post a Discord reminder 1-2x/day on a configurable schedule prompting manual resubmission of the organization application; resubmission itself is performed only via an explicit user-triggered "Resubmit Now" action (My Application dashboard tab), not automatically | BR2 | **Done — Phase 6 (auto-resubmit), superseded Phase 54** ([#152](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/152)): `resubmit_reminder_task` (`app/tasks/resubmit_tasks.py`) posts the reminder on the beat schedule (`resubmit_times_utc`); `resubmit_application_task` now only runs on manual trigger via `POST /api/tasks/resubmit-application`, surfaced as a "Resubmit Now" button (`ResubmitNowButton.tsx`) |
+| FR4 | Post a Discord notification (to the user's own server, via `DISCORD_WEBHOOK_URL`) when a resubmission occurs, for manual copy/paste into the organizer Discord | BR2 | **Done — Phase 5/6, reminder notice added Phase 54** (`app/notifications/discord.py`; `post_resubmission_notice` wired into `resubmit_application_task` on manual trigger, `post_reminder_notice` wired into the new scheduled `resubmit_reminder_task` ([#152](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/152)). Phase 6 also adds a status-change notice for FR2.) |
 | FR5 | Log each resubmission as a timestamped datapoint (success flag, discord-notified flag) | BR1, BR2 | **Done — Phase 6** (`record_resubmission` in `app/tasks/resubmit_tasks.py`) |
 | FR6 | Ingest tournament data from `GET /api/tournaments` across all games | BR3 | **Done — Phase 3/10**: recent ingestion (Phase 3) plus paginated historical backfill (`TOURNAMENT_BACKFILL_MONTHS`, default 3 months) on a Celery beat schedule (`app/tasks/tournament_tasks.py`) |
 | FR7 | Determine each organizer's ID and first-tournament date per game from ingested data | BR3 | **Done — Phase 3** (`OrganizerActivity`) |
@@ -256,3 +259,4 @@ Tracked via [GitHub milestones](https://github.com/badconfigstudios/limitless-or
 | 51 | Documentation site: metrics pages (overview, frontier regression, organizer activity, organizer lifecycle) (FR38) — **Done** | MVP5 | [#140](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/140) |
 | 52 | Deploy docs site via Helm + Ingress: dedicated `docs` image (MkDocs build + nginx), Deployment/Service mirroring `frontend`, independent Ingress at `/manual` (FR39) — **Done** | MVP5 | [#147](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/147) |
 | 53 | MVP5 verification + release cut (v0.5.0): update requirements traceability, CHANGELOG cut, full test suite, manual staging verification, `mkdocs build --strict` — **Done** | MVP5 | — |
+| 54 | Replace automated resubmission with reminder-based manual trigger: beat schedule now dispatches `resubmit_reminder_task` (Discord reminder only, no scraping) instead of auto-resubmitting; `resubmit_application_task` runs only via user-triggered "Resubmit Now" button on the My Application tab (FR3, FR4) — **Done** | MVP5 | [#152](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/152) |

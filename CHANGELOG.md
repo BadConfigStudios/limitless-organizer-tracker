@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 
 ## [Unreleased]
 
+### Changed
+
+- **Phase 54 — Replace automated resubmission with reminder-based manual
+  trigger ([#152](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/152),
+  FR3, FR4)**: The beat schedule no longer auto-dispatches resubmission.
+  Instead it posts a Discord reminder (`resubmit_reminder_task`) on the
+  existing `resubmit_times_utc` schedule, and resubmission is now performed
+  only via an explicit "Resubmit Now" button on the My Application dashboard
+  tab, reusing the existing `resubmit_application_task` and
+  `POST /api/tasks/resubmit-application` endpoint. Walked back after 4 weeks
+  of staging data showed no measurable benefit from full automation.
+
 ## [0.5.0] - 2026-06-30
 
 ### Added

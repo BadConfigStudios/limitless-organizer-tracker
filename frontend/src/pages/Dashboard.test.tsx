@@ -18,11 +18,13 @@ describe("Dashboard", () => {
     expect(main?.className).toMatch(/max-w-6xl/);
   });
 
-  it("shows the application tab by default with stat cards, status history, and resubmission log", async () => {
+  it("shows the application tab by default with stat cards, status history, resubmit action, and resubmission log", async () => {
     renderWithQueryClient(<Dashboard />);
 
     expect(screen.getByRole("heading", { name: /application overview/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /status history/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /resubmit application/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /resubmit now/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /resubmission log/i })).toBeInTheDocument();
 
     expect(await screen.findByText("Pending")).toBeInTheDocument();
@@ -66,6 +68,7 @@ describe("Dashboard", () => {
     fireEvent.click(screen.getByRole("tab", { name: /organizers/i }));
 
     expect(screen.queryByRole("heading", { name: /status history/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /resubmit application/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /resubmission log/i })).not.toBeInTheDocument();
   });
 });

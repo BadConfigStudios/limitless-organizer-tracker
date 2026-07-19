@@ -78,8 +78,8 @@ def build_schedule_entries(config: dict) -> list[tuple[str, str, crontab | timed
     ]
     for hour, minute in parse_resubmit_times(config["resubmit_times_utc"]):
         entries.append((
-            f"resubmit-application-{hour:02d}{minute:02d}",
-            "app.tasks.resubmit_tasks.resubmit_application_task",
+            f"resubmit-reminder-{hour:02d}{minute:02d}",
+            "app.tasks.resubmit_tasks.resubmit_reminder_task",
             crontab(hour=hour, minute=minute),
         ))
     return entries
