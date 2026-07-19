@@ -27,15 +27,15 @@ GitOps) could pick up before you've actually confirmed the change works.
    cluster's architecture:
 
    ```bash
-   docker build --platform linux/amd64 -t ghcr.io/genneteng/limitless-organizer-tracker/backend:<tag> ./backend
-   docker build --platform linux/amd64 -t ghcr.io/genneteng/limitless-organizer-tracker/frontend:<tag> ./frontend
+   docker build --platform linux/amd64 -t ghcr.io/badconfigstudios/limitless-organizer-tracker/backend:<tag> ./backend
+   docker build --platform linux/amd64 -t ghcr.io/badconfigstudios/limitless-organizer-tracker/frontend:<tag> ./frontend
    ```
 
 2. **Push to GHCR**:
 
    ```bash
-   docker push ghcr.io/genneteng/limitless-organizer-tracker/backend:<tag>
-   docker push ghcr.io/genneteng/limitless-organizer-tracker/frontend:<tag>
+   docker push ghcr.io/badconfigstudios/limitless-organizer-tracker/backend:<tag>
+   docker push ghcr.io/badconfigstudios/limitless-organizer-tracker/frontend:<tag>
    ```
 
 3. **Update the running deployment's image tag** (rather than a full
@@ -43,7 +43,7 @@ GitOps) could pick up before you've actually confirmed the change works.
 
    ```bash
    kubectl --context mcgee-local -n limitless-staging set image \
-     deployment/limitless-staging-backend backend=ghcr.io/genneteng/limitless-organizer-tracker/backend:<tag>
+     deployment/limitless-staging-backend backend=ghcr.io/badconfigstudios/limitless-organizer-tracker/backend:<tag>
    kubectl --context mcgee-local -n limitless-staging rollout status deployment/limitless-staging-backend
    ```
 

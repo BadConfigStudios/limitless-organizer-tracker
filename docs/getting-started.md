@@ -9,7 +9,7 @@
 ## Clone and configure
 
 ```bash
-git clone https://github.com/GenNetEng/limitless-organizer-tracker.git
+git clone https://github.com/badconfigstudios/limitless-organizer-tracker.git
 cd limitless-organizer-tracker
 cp .env.example .env
 ```

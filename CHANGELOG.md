@@ -14,14 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Added
 
 - **Phase 52 — Deploy docs site via Helm + Ingress
-  ([#147](https://github.com/GenNetEng/limitless-organizer-tracker/issues/147),
+  ([#147](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/147),
   FR39)**: Documentation site served from the cube cluster at `/manual` via a
   dedicated `docs` image (MkDocs static build + nginx), Helm Deployment/Service
   mirroring the existing `frontend` pattern, and an independent Ingress
   resource so docs deploys aren't coupled to a frontend image rebuild.
 
 - **Phase 50/51 — Documentation site
-  ([#140](https://github.com/GenNetEng/limitless-organizer-tracker/issues/140),
+  ([#140](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/140),
   FR38)**: MkDocs + mkdocs-material site with project overview/architecture,
   development setup/workflow/configuration/API reference, deployment
   (local/staging/production/Helm), and metrics methodology (frontier
@@ -29,21 +29,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `docs-build` CI job runs `mkdocs build --strict`.
 
 - **Phase 49 — Verify frontier regression + refactor
-  ([#139](https://github.com/GenNetEng/limitless-organizer-tracker/issues/139),
+  ([#139](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/139),
   FR37)**: Extracted `build_frontier_regression()` from the organizers router
   into `app/analytics/frontier.py`, shared by `GET /api/organizers/wait-estimate`
   and a new one-time admin-triggered `verify_frontier_regression_task` that
   logs slope/R²/frontier_size/sample_size as an event after backfill.
 
 - **Phase 48 — Historical organizer ID scan
-  ([#137](https://github.com/GenNetEng/limitless-organizer-tracker/issues/137),
+  ([#137](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/137),
   FR36)**: One-time admin-triggered `historical_organizer_scan_task` that
   probes organizer IDs 1 through the scanner watermark via httpx, continuing
   past 404/500 (unlike the frontier scanner) since historical IDs have gaps,
   dispatching `scan_single_organizer_task` for each 200.
 
 - **Phase 47 — Backfill Organizer rows from tournament data
-  ([#136](https://github.com/GenNetEng/limitless-organizer-tracker/issues/136),
+  ([#136](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/136),
   FR35)**: One-time admin-triggered `backfill_organizers_from_tournaments_task`
   that creates `Organizer` rows for every orphan `organizer_id` present in
   `tournaments`, reusing `sync_organizer_first_tournament_dates()`.
@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Fixed
 
 - **Phase 46 — Ingestion organizer upsert fix
-  ([#138](https://github.com/GenNetEng/limitless-organizer-tracker/issues/138),
+  ([#138](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/138),
   FR17)**: `sync_organizer_first_tournament_dates()` now sets `detected_at` on
   newly created `Organizer` rows, so ingestion-discovered organizers are
   visible in "recently detected" queries.
@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Added
 
 - **Phase 43 — Dashboard stat cards + activity summary
-  ([#103](https://github.com/GenNetEng/limitless-organizer-tracker/issues/103),
+  ([#103](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/103),
   FR34)**: At-a-glance stat cards on "My Application" tab (current status badge,
   last check time, total resubmissions, last resubmission time) and "Organizers"
   tab (scanner status card with last scan time, scanner watermark/highest ID,
@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `/api/admin/event-log`).
 
 - **Phase 42 — Onboarding analytics overlay + delta
-  ([#85](https://github.com/GenNetEng/limitless-organizer-tracker/issues/85),
+  ([#85](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/85),
   FR33)**: Onboarding counts displayed as a `Line` series on the Organizer
   Activity chart alongside the existing `Bar` (first tournament activity).
   New `GET /api/organizers/onboarding-delta` endpoint returning
@@ -79,24 +79,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   deltas). `OnboardingDelta` dashboard card with ID ≥ 2723 threshold note.
 
 - **Phase 41 — Organizer onboarding dashboard + date windows
-  ([#92](https://github.com/GenNetEng/limitless-organizer-tracker/issues/92),
-  [#125](https://github.com/GenNetEng/limitless-organizer-tracker/issues/125),
+  ([#92](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/92),
+  [#125](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/125),
   FR31, FR32)**: `RecentlyOnboarded.tsx` table of recently onboarded organizers
   with datetime timestamps and clickable IDs linking to Organizer Profile.
   Date window selector (30/90/180 days, all time) on `OrganizerActivityChart`
   and `WaitTimeEstimator` for focusing on recent trends vs historical data.
 
 - **Phase 40 — Surface detected_at + recently onboarded API + timezone
-  ([#101](https://github.com/GenNetEng/limitless-organizer-tracker/issues/101),
-  [#102](https://github.com/GenNetEng/limitless-organizer-tracker/issues/102),
-  [#126](https://github.com/GenNetEng/limitless-organizer-tracker/issues/126),
+  ([#101](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/101),
+  [#102](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/102),
+  [#126](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/126),
   FR30)**: `detected_at` surfaced with full datetime in organizer API responses.
   New `GET /api/organizers/recently-onboarded?limit=N` endpoint returning the N
   most recently detected organizers ordered by `detected_at` desc.
   `display_timezone` admin-editable setting (default `America/Chicago`).
 
 - **Phase 37 — Dynamic Celery beat schedule via celery-redbeat
-  ([#100](https://github.com/GenNetEng/limitless-organizer-tracker/issues/100),
+  ([#100](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/100),
   FR29)**: Replaced static import-time beat schedule with Redis-backed
   `RedBeatSchedulerEntry` objects via `celery-redbeat`. `build_beat_schedule()`
   reads effective config (DB-merged) and writes schedule entries to Redis.
@@ -105,14 +105,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `celery-redbeat`.
 
 - **Phase 36 — Admin config edit API + frontend
-  ([#100](https://github.com/GenNetEng/limitless-organizer-tracker/issues/100),
+  ([#100](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/100),
   FR28)**: `PUT /api/admin/config` accepts partial updates validated against the
   editable-keys allowlist, persists via `set_config_value()`, and returns the
   updated effective config. Frontend `AdminConfig.tsx` supports inline editing
   with per-row edit/save controls via `useMutation`.
 
 - **Phase 35 — Config resolution: DB overrides env
-  ([#100](https://github.com/GenNetEng/limitless-organizer-tracker/issues/100),
+  ([#100](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/100),
   FR27)**: `get_effective_config()` merges DB overrides over env-var defaults for
   all editable keys; `get_effective_value()` resolves a single key with type
   coercion. `GET /api/admin/config` returns effective (DB-merged) config.
@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `settings.*`.
 
 - **Phase 34 — Config DB table + model + migration
-  ([#100](https://github.com/GenNetEng/limitless-organizer-tracker/issues/100),
+  ([#100](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/100),
   FR26)**: New `ConfigEntry` model (`key`, `value`, `updated_at`) with Alembic
   migration. New `config_db.py` module providing `get_config_value()`,
   `set_config_value()`, and `EDITABLE_CONFIG_KEYS` allowlist (the 8
@@ -129,21 +129,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   changes yet (part 1/4 of #100).
 
 - **Phase 33 — SCRAPER_DEBUG config flag
-  ([#91](https://github.com/GenNetEng/limitless-organizer-tracker/issues/91),
+  ([#91](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/91),
   FR25)**: New `SCRAPER_DEBUG` setting (default `false`). When enabled, captures
   `page.content()[:20000]` on every scrape attempt (status checks and
   resubmissions) and includes the HTML in the `log_event()` details, providing
   on-demand diagnostic visibility without a code change or redeploy.
 
 - **Phase 32 — Configurable session validation timeout
-  ([#97](https://github.com/GenNetEng/limitless-organizer-tracker/issues/97))**:
+  ([#97](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/97))**:
   New `SESSION_VALIDATION_TIMEOUT_MS` setting (default 10000) controls the
   timeout for the `page.goto()` call that validates stored sessions.
   `PlaywrightTimeoutError` is now caught and treated as an expired session
   (triggers re-authentication), logged distinctly from redirect-based expiry.
 
 - **Phase 31 — Log session refresh event
-  ([#96](https://github.com/GenNetEng/limitless-organizer-tracker/issues/96),
+  ([#96](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/96),
   FR24)**: `authenticated_page()` now yields an `AuthenticatedPageContext`
   dataclass with `page` and `session_refreshed` fields. When an expired session
   is detected and recovered, the calling task (`status_tasks`,
@@ -154,17 +154,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Changed
 
 - **Phase 39 — UI layout + table polish
-  ([#122](https://github.com/GenNetEng/limitless-organizer-tracker/issues/122),
-  [#123](https://github.com/GenNetEng/limitless-organizer-tracker/issues/123),
-  [#124](https://github.com/GenNetEng/limitless-organizer-tracker/issues/124),
-  [#116](https://github.com/GenNetEng/limitless-organizer-tracker/issues/116))**:
+  ([#122](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/122),
+  [#123](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/123),
+  [#124](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/124),
+  [#116](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/116))**:
   Widened page layout from `max-w-3xl` to `max-w-5xl` (#122). Fixed zebra
   striping contrast in dim theme with explicit `even:bg-base-200` (#123).
   Reorganized dashboard tabs for better information architecture (#124). Fixed
   MSW PUT handler type mismatch (#116).
 
 - **Phase 38 — UI styling rework
-  ([#79](https://github.com/GenNetEng/limitless-organizer-tracker/issues/79))**:
+  ([#79](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/79))**:
   Switched DaisyUI theme from `dark` to `dim` for better base color contrast.
   Added table zebra striping, pagination on all list views, task trigger table
   with component badges, standardized error messages, auto-refresh on data
@@ -173,10 +173,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Fixed
 
 - **Phase 44 — Bug fixes + cleanup
-  ([#106](https://github.com/GenNetEng/limitless-organizer-tracker/issues/106),
-  [#109](https://github.com/GenNetEng/limitless-organizer-tracker/issues/109),
-  [#113](https://github.com/GenNetEng/limitless-organizer-tracker/issues/113),
-  [#119](https://github.com/GenNetEng/limitless-organizer-tracker/issues/119))**:
+  ([#106](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/106),
+  [#109](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/109),
+  [#113](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/113),
+  [#119](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/119))**:
   - Centralized `session_refreshed` event logging into `authenticated_page()`
     so every caller gets it automatically (#106)
   - Eliminated redundant `page.content()` calls on resubmit failure paths when
@@ -189,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Tests
 
 - **Phase 30 — Triage resubmit bug
-  ([#86](https://github.com/GenNetEng/limitless-organizer-tracker/issues/86))**:
+  ([#86](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/86))**:
   verified resubmit flow is working after PR #88 fix (in-browser `fetch()`).
   Added missing `post_request_failed` failure-stage unit test. All 6 resubmit
   unit tests + 2 acceptance tests pass. Closes #86.
@@ -199,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Fixed
 
 - **Phase 29 — Expired session detection and recovery
-  ([#16](https://github.com/GenNetEng/limitless-organizer-tracker/issues/16))**:
+  ([#16](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/16))**:
   `authenticated_page()` now validates stored sessions by navigating to an
   auth-required page after loading the context. If the server redirects to
   `/login` (indicating the session cookie has expired), the stale
@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Changed
 
 - **Phase 28 — Wait-estimate response shape cleanup
-  ([#37](https://github.com/GenNetEng/limitless-organizer-tracker/issues/37))**:
+  ([#37](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/37))**:
   `GET /api/organizers/wait-estimate` no longer exposes the regression
   `intercept` (Python ordinal-day units). The backend now computes the fitted
   line's two endpoints as `{organizer_id, projected_date}` pairs and returns
@@ -227,19 +227,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Added
 
 - **Phase 27 — Error-state tests
-  ([#75](https://github.com/GenNetEng/limitless-organizer-tracker/issues/75))**:
+  ([#75](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/75))**:
   added API error-state tests (500 responses via MSW `server.use()`) to all 6
   data components: EventLogViewer, Diagnostics, TaskTriggers, AdminConfig,
   StatusTimeline, ResubmissionLog. 74 frontend tests total.
 - **Phase 26 — Historical tournament backfill
-  ([#68](https://github.com/GenNetEng/limitless-organizer-tracker/issues/68))**:
+  ([#68](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/68))**:
   `full_tournament_backfill_task` Celery task pages through the entire Limitless
   tournament API history with no date cutoff, upserting all tournaments and
   recomputing organizer activity/first-tournament-date data. Admin trigger at
   `POST /api/tasks/full-backfill` (10-minute timeout for the long-running
   operation). Registered in the Task Triggers panel.
 - **Phase 25 — Scrape endpoint sync + estimated onboard date
-  ([#62](https://github.com/GenNetEng/limitless-organizer-tracker/issues/62))**:
+  ([#62](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/62))**:
   `GET /api/organizers/{id}/scrape` now upserts an `Organizer` row on lookup,
   parsing `first_tournament_date` from the scraped tournament list (updating if
   earlier than the DB value). For organizers without a scanner-observed
@@ -250,8 +250,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Changed
 
 - **Phase 24 — Performance
-  ([#54](https://github.com/GenNetEng/limitless-organizer-tracker/issues/54),
-  [#31](https://github.com/GenNetEng/limitless-organizer-tracker/issues/31))**:
+  ([#54](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/54),
+  [#31](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/31))**:
   - `sync_organizer_first_tournament_dates` rewritten from O(N) per-organizer
     queries to 2 bulk queries (one `GROUP BY` aggregate + one `IN` fetch),
     eliminating the N+1 pattern during tournament ingestion (#54).
@@ -259,9 +259,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
     `d7c22892b275`) to support `WHERE game = :game` filters in activity and
     wait-estimate endpoints without a full table scan (#31).
 - **Phase 23 — Frontend cleanup
-  ([#77](https://github.com/GenNetEng/limitless-organizer-tracker/issues/77),
-  [#40](https://github.com/GenNetEng/limitless-organizer-tracker/issues/40),
-  [#39](https://github.com/GenNetEng/limitless-organizer-tracker/issues/39))**:
+  ([#77](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/77),
+  [#40](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/40),
+  [#39](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/39))**:
   - Tabs switched from `tabs-bordered` to DaisyUI v5 `tabs-border` with
     `text-primary font-semibold` on the active tab for clear visual distinction;
     all dashboard sections wrapped in `card bg-base-200` containers for visual
@@ -274,12 +274,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   - #38 was already resolved during the Phase 12.5 redesign (the unreachable
     `fetchEstimate` null branch no longer exists).
 - **Phase 22 — Backend refactors
-  ([#57](https://github.com/GenNetEng/limitless-organizer-tracker/issues/57),
-  [#56](https://github.com/GenNetEng/limitless-organizer-tracker/issues/56),
-  [#55](https://github.com/GenNetEng/limitless-organizer-tracker/issues/55),
-  [#32](https://github.com/GenNetEng/limitless-organizer-tracker/issues/32),
-  [#18](https://github.com/GenNetEng/limitless-organizer-tracker/issues/18),
-  [#17](https://github.com/GenNetEng/limitless-organizer-tracker/issues/17))**:
+  ([#57](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/57),
+  [#56](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/56),
+  [#55](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/55),
+  [#32](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/32),
+  [#18](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/18),
+  [#17](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/17))**:
   - `task_session()` context manager in `app/db/session.py` replaces the
     duplicated `SessionLocal()` / try / finally pattern across all 4 Celery
     task modules (#56, #17). Adds rollback-on-exception to all task paths.
@@ -297,7 +297,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
 ### Added
 
 - **Phase 21b — Admin frontend tab
-  ([#70](https://github.com/GenNetEng/limitless-organizer-tracker/issues/70))**:
+  ([#70](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/70))**:
   new "Admin" tab in the dashboard with four components consuming the Phase 21a
   admin API: `EventLogViewer` (paginated event log table with severity badges),
   `Diagnostics` (DB/Redis/Celery/Beat health cards + worker list + last success
@@ -312,7 +312,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   CI builds and pushes `ghcr.io/.../worker` alongside backend/frontend. Helm chart
   updated: celery-worker deployment now references `worker.image`.
 - **Phase 19 — Helm chart + Rancher Fleet GitOps
-  ([#47](https://github.com/GenNetEng/limitless-organizer-tracker/issues/47))**:
+  ([#47](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/47))**:
   production Dockerfiles (`Dockerfile.prod` for backend + frontend with nginx),
   GitHub Actions workflow to build + push images to GHCR on main push.
   Helm chart (`charts/limitless-organizer-tracker/`) with deployments for
@@ -321,13 +321,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   PostgreSQL; Bitnami Redis subchart. `fleet.yaml` targets the Rancher `local`
   cluster for GitOps deployment.
 - **Phase 18 — Dark theme via DaisyUI
-  ([#46](https://github.com/GenNetEng/limitless-organizer-tracker/issues/46))**:
+  ([#46](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/46))**:
   installed DaisyUI v5 plugin with `dark` theme. All components migrated from
   hardcoded Tailwind color utilities to DaisyUI semantic classes (`btn`,
   `badge`, `stats`, `tabs`, `input`, `select`, `form-control`). Recharts chart
   colors updated for dark background readability. 51/51 frontend tests pass.
 - **Phase 17 — Organizer profile frontend + dashboard overhaul (FR15, FR16 UI,
-  [#45](https://github.com/GenNetEng/limitless-organizer-tracker/issues/45))**:
+  [#45](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/45))**:
   `OrganizerProfile` component — form to look up an organizer by ID via
   `GET /api/organizers/{id}/scrape`, displays organizer name, onboarded/first-
   tournament dates (from `Organizer` DB table), and upcoming/recent tournament
@@ -349,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `Organizer` table (falls back to `OrganizerActivity`; 404 if both empty).
   New schemas: `OrganizerProfileOut`, `TournamentEntryOut`,
   `HighestOrganizerIdOut`. 165/165 backend tests pass.
-- **Phase 15 — README + traceability finalization (MVP3, closes [#11](https://github.com/GenNetEng/limitless-organizer-tracker/issues/11))**:
+- **Phase 15 — README + traceability finalization (MVP3, closes [#11](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/11))**:
   expanded `docs/dev_guide.md` env-var table to cover all settings added since
   Phase 8 (`LIMITLESS_APPLICATION_ID`, `CORS_ALLOWED_ORIGINS`,
   `TOURNAMENT_BACKFILL_MONTHS`, `ORGANIZER_SCAN_INTERVAL_HOURS`,
@@ -370,7 +370,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/). Per
   `Organizer.first_tournament_date` = MIN across games from `OrganizerActivity`, keeping
   the onboarding-to-first-tournament delta always fresh. New `GET /api/organizers/onboarding-
   history?interval=day|week` endpoint returns `[{period, count}]` bucketed from
-  `Organizer.onboarded_at` (null rows excluded). Closes [#51](https://github.com/GenNetEng/limitless-organizer-tracker/issues/51).
+  `Organizer.onboarded_at` (null rows excluded). Closes [#51](https://github.com/badconfigstudios/limitless-organizer-tracker/issues/51).
 - Phase numbering shift: organizer onboarding scanner is now Phase 14; former phases 14→18
   shift to 15→18 (`docs/requirements.md` and GitHub issues updated).
 

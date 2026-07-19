@@ -35,7 +35,7 @@ Each phase corresponds to a GitHub issue (see the Build Order table in
     and the owner approves.
 
 Full detail (commit message format, technical-decision sign-off) lives in
-[`CONTRIBUTING.md`](https://github.com/GenNetEng/limitless-organizer-tracker/blob/main/CONTRIBUTING.md)
+[`CONTRIBUTING.md`](https://github.com/badconfigstudios/limitless-organizer-tracker/blob/main/CONTRIBUTING.md)
 at the repo root.
 
 ## Test layout
@@ -82,7 +82,7 @@ libraries or patterns, file/module structure, auth/session design, API
 design, CI/CD or GitHub repo configuration — must be presented to the owner
 with alternatives and tradeoffs **before** it is implemented. Once approved,
 it's recorded in
-[`DECISIONS.md`](https://github.com/GenNetEng/limitless-organizer-tracker/blob/main/DECISIONS.md).
+[`DECISIONS.md`](https://github.com/badconfigstudios/limitless-organizer-tracker/blob/main/DECISIONS.md).
 
 ## CI
 

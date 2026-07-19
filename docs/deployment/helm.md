@@ -35,7 +35,7 @@ charts/limitless-organizer-tracker/
 | Key | Production default | Purpose |
 |-----|--------------------|---------|
 | `namespace` | `limitless` | Target namespace |
-| `backend.image.repository` / `.tag` | `ghcr.io/genneteng/limitless-organizer-tracker/backend` / `latest` | Backend image |
+| `backend.image.repository` / `.tag` | `ghcr.io/badconfigstudios/limitless-organizer-tracker/backend` / `latest` | Backend image |
 | `backend.replicas` | `1` | Backend pod count |
 | `backend.port` | `8000` | Container + readiness/liveness probe port (`GET /healthz`) |
 | `backend.env.CORS_ALLOWED_ORIGINS` | dashboard hostname | Goes into `configmap.yaml` |
