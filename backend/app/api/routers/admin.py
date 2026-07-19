@@ -74,13 +74,6 @@ TASK_TRIGGERS = [
         component="Organizers",
     ),
     TaskTriggerInfo(
-        name="resubmit_application",
-        endpoint="/api/tasks/resubmit-application",
-        method="POST",
-        description="Resubmit organizer application + Discord notify",
-        component="Application",
-    ),
-    TaskTriggerInfo(
         name="check_application_status",
         endpoint="/api/status-check",
         method="POST",

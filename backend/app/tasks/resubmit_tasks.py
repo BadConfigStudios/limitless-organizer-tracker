@@ -8,7 +8,7 @@ from app.config import settings
 from app.db.models import ResubmissionEvent
 from app.db.session import task_session
 from app.events import log_event
-from app.notifications.discord import post_resubmission_notice
+from app.notifications.discord import post_reminder_notice, post_resubmission_notice
 from app.scraper.browser import LoginFailed
 from app.scraper.resubmit import resubmit_application
 from app.scraper.session import authenticated_page
@@ -95,3 +95,31 @@ def resubmit_application_task() -> int:
         )
         session.commit()
         return event.id
+
+
+@celery_app.task(name="app.tasks.resubmit_tasks.resubmit_reminder_task")
+def resubmit_reminder_task() -> None:
+    """Post a Discord reminder to resubmit the application manually (#152).
+
+    Replaces the previous scheduled auto-resubmission (FR3): no login,
+    scraping, or resubmission is performed here, only a reminder notice.
+    """
+    reminded_at = datetime.now(timezone.utc)
+
+    discord_notified = False
+    try:
+        response = post_reminder_notice(settings.discord_webhook_url, reminded_at)
+        discord_notified = response.status_code < 300
+    except httpx.HTTPError:
+        discord_notified = False
+
+    with task_session() as session:
+        log_event(
+            session=session,
+            event_type="scraper.resubmit_reminder",
+            source="resubmit_tasks",
+            message="Resubmission reminder sent",
+            severity="INFO",
+            details={"discord_notified": discord_notified},
+        )
+        session.commit()

@@ -7,6 +7,10 @@ from app.db.models import ApplicationStatus
 _SUCCESS_TEMPLATE = "Resubmission succeeded at {timestamp}."
 _FAILURE_TEMPLATE = "Resubmission failed at {timestamp}."
 _STATUS_UPDATE_TEMPLATE = "Application status changed to {status} at {timestamp}."
+_REMINDER_TEMPLATE = (
+    "Reminder ({timestamp}): time to resubmit the organization application. "
+    "Use the Resubmit Now button on the dashboard's My Application tab."
+)
 
 
 def build_resubmission_message(timestamp: datetime, success: bool) -> str:
@@ -31,4 +35,15 @@ def post_status_update_notice(
 ) -> httpx.Response:
     """Post a Discord notification for an application status change via webhook."""
     message = build_status_update_message(status, timestamp)
+    return httpx.post(webhook_url, json={"content": message})
+
+
+def build_reminder_message(timestamp: datetime) -> str:
+    """Build the Discord message content for a resubmission reminder."""
+    return _REMINDER_TEMPLATE.format(timestamp=timestamp.isoformat())
+
+
+def post_reminder_notice(webhook_url: str, timestamp: datetime) -> httpx.Response:
+    """Post a Discord notification reminding the user to resubmit manually."""
+    message = build_reminder_message(timestamp)
     return httpx.post(webhook_url, json={"content": message})

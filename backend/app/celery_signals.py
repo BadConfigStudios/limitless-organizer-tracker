@@ -113,6 +113,21 @@ def on_beat_init(sender=None, **kwargs):
         build_beat_schedule(sender.app, config)
     except Exception:
         logger.error("Failed to build beat schedule on startup", exc_info=True)
+        try:
+            session = SessionLocal()
+            try:
+                log_event(
+                    session=session,
+                    event_type="beat.schedule_rebuild_failed",
+                    source="celery_signals",
+                    message="Beat schedule rebuild failed on startup — schedule may be stale",
+                    severity="ERROR",
+                )
+                session.commit()
+            finally:
+                session.close()
+        except Exception:
+            logger.debug("Failed to log beat.schedule_rebuild_failed event", exc_info=True)
 
 
 def connect_signals():

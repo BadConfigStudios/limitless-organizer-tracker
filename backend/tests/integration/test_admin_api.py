@@ -220,8 +220,10 @@ def test_get_tasks_returns_task_list(client):
     names = {t["name"] for t in body}
     assert "ingest_tournaments" in names
     assert "scan_organizers" in names
-    assert "resubmit_application" in names
     assert "check_application_status" in names
+    # Resubmission is no longer surfaced via the Admin panel (#152) — it's a
+    # deliberate user action via the "Resubmit Now" button on My Application.
+    assert "resubmit_application" not in names
 
     for task in body:
         assert "name" in task

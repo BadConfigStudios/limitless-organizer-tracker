@@ -52,7 +52,7 @@ def _find_entry(entries, name):
 
 def test_build_schedule_entries_always_has_three_fixed_entries():
     entries = build_schedule_entries(_default_config())
-    fixed = [e for e in entries if not e[0].startswith("resubmit-application-")]
+    fixed = [e for e in entries if not e[0].startswith("resubmit-reminder-")]
     assert len(fixed) == 3
 
 
@@ -116,18 +116,18 @@ def test_build_schedule_entries_creates_resubmit_entries():
     config = _default_config()
     config["resubmit_times_utc"] = "09:00,21:00"
     entries = build_schedule_entries(config)
-    resubmit = [e for e in entries if e[0].startswith("resubmit-application-")]
+    resubmit = [e for e in entries if e[0].startswith("resubmit-reminder-")]
     assert len(resubmit) == 2
-    assert resubmit[0][0] == "resubmit-application-0900"
-    assert resubmit[1][0] == "resubmit-application-2100"
-    assert all(e[1] == "app.tasks.resubmit_tasks.resubmit_application_task" for e in resubmit)
+    assert resubmit[0][0] == "resubmit-reminder-0900"
+    assert resubmit[1][0] == "resubmit-reminder-2100"
+    assert all(e[1] == "app.tasks.resubmit_tasks.resubmit_reminder_task" for e in resubmit)
 
 
 def test_build_schedule_entries_resubmit_crontab_matches_time():
     config = _default_config()
     config["resubmit_times_utc"] = "14:30"
     entries = build_schedule_entries(config)
-    entry = _find_entry(entries, "resubmit-application-1430")
+    entry = _find_entry(entries, "resubmit-reminder-1430")
     assert entry is not None
     assert entry[2].hour == {14}
     assert entry[2].minute == {30}
@@ -137,7 +137,7 @@ def test_build_schedule_entries_empty_resubmit_times():
     config = _default_config()
     config["resubmit_times_utc"] = ""
     entries = build_schedule_entries(config)
-    resubmit = [e for e in entries if e[0].startswith("resubmit-application-")]
+    resubmit = [e for e in entries if e[0].startswith("resubmit-reminder-")]
     assert len(resubmit) == 0
 
 
@@ -145,9 +145,9 @@ def test_build_schedule_entries_single_resubmit_time():
     config = _default_config()
     config["resubmit_times_utc"] = "10:00"
     entries = build_schedule_entries(config)
-    resubmit = [e for e in entries if e[0].startswith("resubmit-application-")]
+    resubmit = [e for e in entries if e[0].startswith("resubmit-reminder-")]
     assert len(resubmit) == 1
-    assert resubmit[0][0] == "resubmit-application-1000"
+    assert resubmit[0][0] == "resubmit-reminder-1000"
 
 
 # --- build_beat_schedule() (mocked Redis) ---
@@ -194,8 +194,8 @@ def test_build_beat_schedule_tracks_entry_names_in_redis(mock_get_redis, MockEnt
     assert "check-application-status" in stored_names
     assert "ingest-tournaments" in stored_names
     assert "scan-new-organizers" in stored_names
-    assert "resubmit-application-0900" in stored_names
-    assert "resubmit-application-2100" in stored_names
+    assert "resubmit-reminder-0900" in stored_names
+    assert "resubmit-reminder-2100" in stored_names
 
 
 @patch("app.celery_app.RedBeatSchedulerEntry")
@@ -204,7 +204,7 @@ def test_build_beat_schedule_deletes_stale_entries(mock_get_redis, MockEntry):
     from app.celery_app import build_beat_schedule
 
     mock_redis = MagicMock()
-    mock_redis.smembers.return_value = {"resubmit-application-0800", "old-entry"}
+    mock_redis.smembers.return_value = {"resubmit-reminder-0800", "old-entry"}
     mock_redis.pipeline.return_value = MagicMock()
     mock_get_redis.return_value = mock_redis
 
@@ -216,6 +216,33 @@ def test_build_beat_schedule_deletes_stale_entries(mock_get_redis, MockEntry):
     build_beat_schedule(MagicMock(), config)
 
     assert MockEntry.from_key.call_count == 2
+    assert mock_old_entry.delete.call_count == 2
+
+
+@patch("app.celery_app.RedBeatSchedulerEntry")
+@patch("app.celery_app.get_redis")
+def test_build_beat_schedule_deletes_legacy_resubmit_application_entries(mock_get_redis, MockEntry):
+    """Phase 54 (#152) migration: real production Redis holds pre-existing
+    resubmit-application-* entries from before the reminder rename; these must
+    still get swept up as stale even though the new schedule only produces
+    resubmit-reminder-* names."""
+    from app.celery_app import build_beat_schedule
+
+    mock_redis = MagicMock()
+    mock_redis.smembers.return_value = {"resubmit-application-0900", "resubmit-application-2100"}
+    mock_redis.pipeline.return_value = MagicMock()
+    mock_get_redis.return_value = mock_redis
+
+    mock_old_entry = MagicMock()
+    MockEntry.from_key.return_value = mock_old_entry
+    MockEntry.return_value = MagicMock()
+
+    config = _default_config()
+    build_beat_schedule(MagicMock(), config)
+
+    deleted_keys = [call.args[0] for call in MockEntry.from_key.call_args_list]
+    assert "redbeat:resubmit-application-0900" in deleted_keys
+    assert "redbeat:resubmit-application-2100" in deleted_keys
     assert mock_old_entry.delete.call_count == 2
 
 

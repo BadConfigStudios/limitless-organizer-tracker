@@ -8,6 +8,7 @@ import { OrganizerActivityChart } from "../components/OrganizerActivityChart";
 import { OrganizerProfile } from "../components/OrganizerProfile";
 import { RecentlyOnboarded } from "../components/RecentlyOnboarded";
 import { ResubmissionLog } from "../components/ResubmissionLog";
+import { ResubmitNowButton } from "../components/ResubmitNowButton";
 import { ScannerStatusCard } from "../components/ScannerStatusCard";
 import { StatusTimeline } from "../components/StatusTimeline";
 import { TabNavigation, type Tab } from "../components/TabNavigation";
@@ -37,6 +38,10 @@ export function Dashboard() {
           <section className="card bg-base-200 p-4">
             <h2 className="mb-3 text-lg font-semibold">Status History</h2>
             <StatusTimeline />
+          </section>
+          <section className="card bg-base-200 p-4">
+            <h2 className="mb-3 text-lg font-semibold">Resubmit Application</h2>
+            <ResubmitNowButton />
           </section>
           <section className="card bg-base-200 p-4">
             <h2 className="mb-3 text-lg font-semibold">Resubmission Log</h2>
