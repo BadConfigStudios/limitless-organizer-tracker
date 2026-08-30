@@ -7,6 +7,28 @@ alternatives before implementation, per [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Newest entries first.
 
+## 2026-08-30: Migrate deployment from Fleet to ArgoCD
+
+**Decision**: Planned, not yet scheduled. This repo's GitOps controller will
+move from Rancher Fleet to ArgoCD, joining the other app/client-layer repos
+(`badconfig-site`, `badconfig-customer-fleet`, `calendar-fundraiser-fleet`,
+`club-checkin`) marked for the same move.
+
+**Alternatives considered**: stay on Fleet (status quo — works, but Fleet
+has no native image-update automation, so keeping up-to-date deploys
+requires hand-rolled CI write-back of image tags); migrate all 5 repos in
+one big-bang cutover instead of independently — rejected, too much
+simultaneous production risk.
+
+**Why**: Owner decision to split platform-layer GitOps (stays Fleet, via
+`badconfig-arc`) from app/client-layer GitOps (moves to ArgoCD) —
+separation of concerns plus gaining ArgoCD operational familiarity.
+ArgoCD's Application/Image Updater model natively supports app teams
+deploying their own code without hand-rolled automation.
+
+**Prerequisite**: ArgoCD must be installed on the cluster first (tracked in
+`badconfig-arc`, the platform repo) before this repo's migration can start.
+
 ## 2026-06-29: MkDocs + mkdocs-material for the documentation site (Phase 50)
 
 **Decision**: Use MkDocs with the Material theme to build the project documentation site (`mkdocs.yml` at repo root, pages under `docs/`). The `mkdocs` and `mkdocs-material` packages live in `backend/pyproject.toml`'s `dev` extras.
