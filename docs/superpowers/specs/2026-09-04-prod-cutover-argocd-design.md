@@ -19,10 +19,15 @@ controller ever managed it) and never rolled to the new image path
 either — but it's stable and holds the current, correct application
 data. Per owner: staging's data is authoritative; old prod's is not.
 
-Separately, [DECISIONS.md](../../../DECISIONS.md) already recorded
-(2026-08-30) a planned move of this repo's GitOps from Fleet to ArgoCD.
-ArgoCD is now installed and running on the cluster (namespace `argocd`),
-with a working reference deployment (`sparklab`) to model this on.
+Separately, the owner recorded a decision (2026-08-30) to move this
+repo's GitOps from Fleet to ArgoCD — that DECISIONS.md entry currently
+lives only on the still-open [PR #154](https://github.com/BadConfigStudios/limitless-organizer-tracker/pull/154)
+(`docs/argocd-migration-decision`), not yet in `main`. **PR #154 is a
+prerequisite: merge it before or alongside this work**, so `main`
+actually carries the decision record this design relies on. ArgoCD
+itself is already installed and running on the cluster (namespace
+`argocd`), with a working reference deployment (`sparklab`) to model
+this on.
 
 ## Goal
 
@@ -91,11 +96,31 @@ per-package read access granted on each
 per-package permission model (same class of gotcha as the OpenTourney
 GHCR-blocked issue) — reusing the token doesn't skip this step.
 
+### Secrets delivery
+
+`values.yaml`'s `secrets.*` block (`databaseUrl`, `celeryBrokerUrl`,
+`celeryResultBackend`, `discordWebhookUrl`, `limitlessUsername`,
+`limitlessPassword`, `apiKeys`) ships empty and renders into a k8s
+`Secret` via `templates/secret.yaml`. Old prod/staging only got real
+values through manual `helm upgrade --set …` — there is no
+`values.production.yaml` in the repo, and none should be added (these
+are real secrets, not committed to git). Instead, set them as
+`spec.source.helm.parameters` directly on the **live** ArgoCD
+Application object (applied via `kubectl`, never committed) — the same
+pattern already used in-cluster for `sparklab`'s image-tag parameters.
+Source the values from the current staging deployment's live secret
+(`kubectl get secret ... -o jsonpath` for each key) rather than
+inventing new ones, except where rotation is wanted.
+
 ### Fleet decommission
 
 Delete the `limitless-production` `GitRepo` and `Bundle` in
-`fleet-local` once the ArgoCD Application is confirmed syncing. Leaving
-both running would fight over the same resources.
+`fleet-local` **before** deleting the old namespace (Sequencing step
+1), not after ArgoCD starts syncing. Fleet's `syncPolicy` would
+otherwise just recreate the namespace/resources it still owns the
+moment they're deleted — the exact "fight over the same resources"
+problem this section warns about, except with Fleet resurrecting things
+ArgoCD is simultaneously trying to own.
 
 ### Ingress
 
@@ -117,18 +142,21 @@ Staging's Percona PG data → new prod PGCluster:
 
 ### Sequencing / safety
 
-1. Delete old `limitless-production` namespace immediately (broken,
-   stale — owner confirmed no backup needed).
-2. Stand up new `limitless-production` via ArgoCD, empty DB.
+1. Delete the Fleet `GitRepo`/`Bundle` for `limitless-production`, then
+   delete the old `limitless-production` namespace (broken, stale —
+   owner confirmed no backup needed). Fleet must stop owning this
+   namespace before it's deleted, or Fleet just recreates it.
+2. Stand up new `limitless-production` via ArgoCD (empty DB), apply the
+   `helm.parameters` secrets and the `ghcr-pull-secret`.
 3. Migrate data from `limitless-staging` into it.
 4. Verify new prod serving correctly end-to-end (manual verification
    gate — UI happy path + Resubmit Now + Discord notify, per
    `~/.claude/CLAUDE.md` Manual verification rule).
-5. Only then delete `limitless-staging` and the Fleet `GitRepo`/`Bundle`.
+5. Only then delete `limitless-staging`.
 
 `limitless-staging` is the only copy of current data until step 4
 passes — kept alive as the safety net until the migration is verified,
-even though old prod itself is discarded immediately.
+even though old prod itself is discarded immediately (step 1).
 
 ## Testing / verification
 
@@ -149,3 +177,6 @@ even though old prod itself is discarded immediately.
   connection details (may require a temporary port-forward or a job
   run inside the cluster) — exact mechanics to be nailed down in the
   plan, not this design.
+- PR #154 must land in `main` first (or this PR must be rebased onto
+  it) so the ArgoCD-migration decision this design cites actually
+  exists on the branch.
