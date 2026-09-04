@@ -52,6 +52,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=main-${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=pr
 
       - uses: docker/build-push-action@v6
@@ -84,6 +85,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=main-${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=pr
 
       - uses: docker/build-push-action@v6
@@ -116,6 +118,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=main-${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=pr
 
       - uses: docker/build-push-action@v6
@@ -150,6 +153,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=main-${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=pr
 
       - uses: docker/build-push-action@v6
