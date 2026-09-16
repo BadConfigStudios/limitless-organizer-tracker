@@ -108,6 +108,8 @@ def resubmit_reminder_task() -> None:
 
     discord_notified = False
     try:
+        # dashboard_base_url is the bare root, not a deep link to My Application —
+        # it relies on that tab staying Dashboard.tsx's default (TABS[0]).
         response = post_reminder_notice(settings.discord_webhook_url, reminded_at, link=settings.dashboard_base_url)
         discord_notified = response.status_code < 300
     except httpx.HTTPError:

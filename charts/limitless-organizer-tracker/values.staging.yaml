@@ -8,6 +8,7 @@ backend:
   env:
     CORS_ALLOWED_ORIGINS: "https://limitless-org-dashboard-staging.badconfig.com"
     LIMITLESS_APPLICATION_ID: "69256ff752eafbbc81177f6a"
+    DASHBOARD_BASE_URL: "https://limitless-org-dashboard-staging.badconfig.com"
 
 frontend:
   image:

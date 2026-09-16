@@ -11,6 +11,7 @@ backend:
     CORS_ALLOWED_ORIGINS: "https://limitless-org-dashboard.badconfig.com"
     LIMITLESS_BASE_URL: "https://play.limitlesstcg.com"
     LIMITLESS_APPLICATION_ID: ""
+    DASHBOARD_BASE_URL: "https://limitless-org-dashboard.badconfig.com"
 
 frontend:
   image:

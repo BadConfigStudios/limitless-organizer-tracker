@@ -13,6 +13,7 @@ Copy `.env.example` to `.env` and fill in real values. `.env` is gitignored
 | `LIMITLESS_USERNAME` / `LIMITLESS_PASSWORD` | Scraper login credentials |
 | `LIMITLESS_APPLICATION_ID` | Your organizer application's numeric ID — from the URL `…/user/application/<id>` |
 | `DISCORD_WEBHOOK_URL` | Webhook for a channel on **your own** Discord server; the tracker posts a notice here that you copy/paste into the organizer Discord |
+| `DASHBOARD_BASE_URL` | Public URL of this dashboard; included as a clickable link in the resubmission reminder (default: none) |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated origins allowed to call the API (default: `http://localhost:5173`) |
 | `APPLICATION_STATUS_CHECK_INTERVAL_HOURS` | How often to run the application-status check, in hours (default: 4) |
 | `RESUBMIT_TIMES_UTC` | Comma-separated `HH:MM` UTC times for resubmission; provide 1 or 2 (e.g. `09:00,21:00`) |
