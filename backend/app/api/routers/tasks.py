@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.auth import require_api_key
+from app.api.auth import require_api_key, require_session
 from app.api.schemas import ResubmissionEventOut, TaskResultOut
 from app.db.models import ResubmissionEvent
 from app.db.session import get_db
@@ -17,7 +17,7 @@ from app.tasks.tournament_tasks import audit_backfill_task, ingest_tournaments_t
 router = APIRouter(
     prefix="/api/tasks",
     tags=["tasks"],
-    dependencies=[Depends(require_api_key)],
+    dependencies=[Depends(require_api_key), Depends(require_session)],
 )
 
 TASK_TIMEOUT_SECONDS = 120
