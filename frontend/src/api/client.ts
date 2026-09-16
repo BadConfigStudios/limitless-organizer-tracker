@@ -104,9 +104,10 @@ export function getOrganizerActivity(game: string | null): Promise<ActivityBucke
   return getJson<ActivityBucket[]>(`/api/organizers/activity${qs ? `?${qs}` : ""}`);
 }
 
-export function getWaitEstimate(organizerId?: number): Promise<WaitEstimate> {
+export function getWaitEstimate(organizerId?: number, days?: number): Promise<WaitEstimate> {
   const params = new URLSearchParams();
   if (organizerId !== undefined) params.set("organizer_id", String(organizerId));
+  if (days !== undefined) params.set("days", String(days));
   const qs = params.toString();
   return getJson<WaitEstimate>(`/api/organizers/wait-estimate${qs ? `?${qs}` : ""}`);
 }

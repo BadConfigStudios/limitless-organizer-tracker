@@ -17,7 +17,7 @@ import { DateWindowSelect } from "./DateWindowSelect";
 
 export function OrganizerActivityChart() {
   const [game, setGame] = useState<string | null>(null);
-  const [dateWindow, setDateWindow] = useState<DateWindow>("");
+  const [dateWindow, setDateWindow] = useState<DateWindow>("90");
 
   const gamesQuery = useQuery({ queryKey: ["games"], queryFn: getGames });
   const activityQuery = useQuery({

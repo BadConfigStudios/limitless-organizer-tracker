@@ -44,13 +44,13 @@ describe("OrganizerActivityChart", () => {
     expect(screen.queryByText("Jun 8: 1")).not.toBeInTheDocument();
   });
 
-  it("renders a date window selector defaulting to All time", async () => {
+  it("renders a date window selector defaulting to Last 90 days", async () => {
     renderWithQueryClient(<OrganizerActivityChart />);
 
     await screen.findByText("Jun 1: 2");
 
     const dateSelect = screen.getByLabelText(/date range/i);
-    expect(dateSelect).toHaveDisplayValue("All time");
+    expect(dateSelect).toHaveDisplayValue("Last 90 days");
   });
 
   it("filters activity to last 30 days when selected", async () => {
@@ -92,7 +92,11 @@ describe("OrganizerActivityChart", () => {
     renderWithQueryClient(<OrganizerActivityChart />);
 
     await screen.findByText("Jun 1: 2");
-    expect(screen.getByText("Dec 1: 3")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
+
+    await waitFor(() => {
+      expect(screen.getByText("Dec 1: 3")).toBeInTheDocument();
+    });
     expect(screen.getByText("Jan 5: 4")).toBeInTheDocument();
     expect(screen.getByText("Mar 1: 2")).toBeInTheDocument();
   });

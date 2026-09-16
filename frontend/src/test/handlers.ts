@@ -60,6 +60,26 @@ export const waitEstimate = {
   ],
 };
 
+export const waitEstimate90d = {
+  organizer_id: 400,
+  slope: 0.2,
+  r_squared: 0.8,
+  projected_active_date: "2026-05-01",
+  sample_size: 2,
+  frontier_size: 2,
+  total_points: 2,
+  fitted_line: [
+    { organizer_id: 300, projected_date: "2026-03-03" },
+    { organizer_id: 400, projected_date: "2026-05-01" },
+  ],
+  points: [
+    { organizer_id: 300, first_tournament_date: "2026-03-03", is_frontier: true },
+    { organizer_id: 380, first_tournament_date: "2026-06-20", is_frontier: true },
+  ],
+};
+
+// (keep the existing `waitEstimate` export as-is — used as the all-time/no-days-param response)
+
 export const organizerProfile = {
   organizer_id: 42,
   name: "Test Organizer",
@@ -206,17 +226,16 @@ export const handlers = [
     return HttpResponse.json(game === "PTCG" ? organizerActivityForPTCG : organizerActivityByWeek);
   }),
   http.get("*/api/organizers/wait-estimate", ({ request }) => {
-    const organizerId = new URL(request.url).searchParams.get("organizer_id");
+    const url = new URL(request.url);
+    const organizerId = url.searchParams.get("organizer_id");
+    const days = url.searchParams.get("days");
+    const base = days === "90" ? waitEstimate90d : waitEstimate;
     const response = organizerId
-      ? waitEstimate
+      ? { ...base, organizer_id: Number(organizerId) }
       : {
-          ...waitEstimate,
+          ...base,
           organizer_id: null,
           projected_active_date: null,
-          fitted_line: [
-            { organizer_id: 100, projected_date: "2026-01-01" },
-            { organizer_id: 300, projected_date: "2026-03-03" },
-          ],
         };
     return HttpResponse.json(response);
   }),
