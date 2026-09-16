@@ -48,3 +48,9 @@ addopts = "-m 'not live'"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
+# Pinned explicitly: an unset rule selection tracks ruff's own shifting
+# "default" across releases, which silently grew and broke CI on an
+# unpinned `ruff>=0.6` install.
+select = ["E4", "E7", "E9", "F"]
