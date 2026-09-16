@@ -4,7 +4,7 @@ Tests the extracted frontier regression builder that queries OrganizerActivity
 and returns points, frontier_points, and a RegressionResult.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.analytics.frontier import build_frontier_regression
 from app.db.models import OrganizerActivity
@@ -88,3 +88,36 @@ def test_regression_result_has_positive_slope(db_session):
     _, _, result = build_frontier_regression(db_session)
 
     assert result.slope > 0
+
+
+def test_days_filter_excludes_points_outside_window(db_session, monkeypatch):
+    """When days is set, points outside the window are excluded BEFORE frontier/regression,
+    not just from the final result — a stale organizer with a very early date must not
+    pull the regression toward it even indirectly."""
+    now = datetime(2026, 6, 25, tzinfo=timezone.utc)
+    monkeypatch.setattr(
+        "app.analytics.frontier.datetime",
+        type("_FixedDatetime", (), {"now": staticmethod(lambda tz=None: now)}),
+    )
+    _add_activity(db_session, 100, now - timedelta(days=200))  # outside 90-day window
+    _add_activity(db_session, 200, now - timedelta(days=10))
+    _add_activity(db_session, 300, now - timedelta(days=5))
+    db_session.commit()
+
+    points, frontier_points, result = build_frontier_regression(db_session, days=90)
+
+    ids = {int(oid) for oid, _ in points}
+    assert ids == {200, 300}
+    assert 100 not in ids
+
+
+def test_days_none_behaves_exactly_as_before(db_session):
+    """days=None (the default) must not change existing all-time behavior."""
+    _add_activity(db_session, 100, datetime(2025, 1, 1, tzinfo=timezone.utc))
+    _add_activity(db_session, 200, datetime(2025, 6, 1, tzinfo=timezone.utc))
+    db_session.commit()
+
+    with_none = build_frontier_regression(db_session, days=None)
+    without_arg = build_frontier_regression(db_session)
+
+    assert [p for p in with_none[0]] == [p for p in without_arg[0]]
