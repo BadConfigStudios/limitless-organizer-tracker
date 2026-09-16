@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
   ComposedChart,
@@ -13,7 +13,7 @@ import {
 import { ApiError, getWaitEstimate, type WaitEstimate } from "../api/client";
 import { formatEpochDate } from "../lib/formatDate";
 import { toFittedLineData, toFrontierScatterData, toScatterData } from "../lib/waitEstimateChartData";
-import { type DateWindow } from "../lib/dateWindow";
+import { dateWindowToDays, type DateWindow } from "../lib/dateWindow";
 import { DateWindowSelect } from "./DateWindowSelect";
 
 export function WaitTimeEstimator() {
@@ -21,11 +21,12 @@ export function WaitTimeEstimator() {
   const [targetOrganizerId, setTargetOrganizerId] = useState<number | undefined>(undefined);
   const [dateWindow, setDateWindow] = useState<DateWindow>("90");
 
-  const days = dateWindow === "" ? undefined : Number(dateWindow);
+  const days = dateWindowToDays(dateWindow);
 
   const estimateQuery = useQuery<WaitEstimate, Error>({
     queryKey: ["wait-estimate", targetOrganizerId, dateWindow],
     queryFn: () => getWaitEstimate(targetOrganizerId, days),
+    placeholderData: keepPreviousData,
   });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {

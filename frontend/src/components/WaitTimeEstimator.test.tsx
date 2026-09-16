@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithQueryClient } from "../test/renderWithQueryClient";
@@ -128,6 +128,8 @@ describe("WaitTimeEstimator", () => {
     // waitEstimate90d's stats (slope 0.2, R² 0.8, sample_size 2) prove days=90 was sent
     expect(await screen.findByText(/0\.2000/)).toBeInTheDocument();
     expect(screen.getByText(/0\.800/)).toBeInTheDocument();
+    const sampleSizeStat = screen.getByText("Sample size").closest<HTMLElement>(".stat");
+    expect(within(sampleSizeStat!).getByText("2")).toBeInTheDocument();
     const dateSelect = screen.getByLabelText(/date range/i);
     expect(dateSelect).toHaveDisplayValue("Last 90 days");
   });
@@ -143,5 +145,6 @@ describe("WaitTimeEstimator", () => {
     // waitEstimate's stats (slope 0.5, R² 0.95, sample_size 5) prove the query re-ran without days
     expect(await screen.findByText(/0\.5000/)).toBeInTheDocument();
     expect(screen.getByText(/0\.950/)).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,9 @@
 export type DateWindow = "" | "30" | "90" | "180";
 
+export function dateWindowToDays(dateWindow: DateWindow): number | undefined {
+  return dateWindow === "" ? undefined : Number(dateWindow);
+}
+
 export function filterByDateWindow<T>(
   items: T[],
   getDate: (item: T) => string,

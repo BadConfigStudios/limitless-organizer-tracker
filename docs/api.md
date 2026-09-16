@@ -34,7 +34,7 @@ Paginated list endpoints share a common envelope:
 |--------|------|-------------|
 | `GET` | `/api/games` | Distinct games with tournament activity — `list[str]` |
 | `GET` | `/api/organizers/activity` | Weekly/monthly counts of newly-active organizers. Query: `interval` (`week`\|`month`, default `week`), `game` (optional filter) |
-| `GET` | `/api/organizers/wait-estimate` | Pareto-frontier OLS regression over the top organizer IDs by `first_tournament_date`. Query: `organizer_id` (optional — adds a projected active date). 404 if not enough data |
+| `GET` | `/api/organizers/wait-estimate` | Pareto-frontier OLS regression over the top organizer IDs by `first_tournament_date`. Query: `organizer_id` (optional — adds a projected active date), `days` (optional — restricts to organizers whose `first_tournament_date` falls in the last N days, filtered before the frontier/regression calculation). 404 if not enough data |
 | `POST` | `/api/organizers/backfill-first-tournament-date` | Back-populate `Organizer.first_tournament_date` from `OrganizerActivity` for rows where it's `NULL`. Returns `{"updated": <count>}` |
 | `GET` | `/api/organizers/onboarding-history` | Daily/weekly counts of newly-onboarded organizers (by `onboarded_at`). Query: `interval` (`day`\|`week`, default `day`) |
 | `GET` | `/api/organizers/onboarding-delta` | Avg/median days between `onboarded_at` and `first_tournament_date`, excluding negative deltas |
