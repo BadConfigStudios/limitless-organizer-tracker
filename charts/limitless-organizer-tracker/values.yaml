@@ -12,6 +12,7 @@ backend:
     LIMITLESS_BASE_URL: "https://play.limitlesstcg.com"
     LIMITLESS_APPLICATION_ID: ""
     DASHBOARD_BASE_URL: "https://limitless-org-dashboard.badconfig.com"
+    SESSION_COOKIE_SECURE: "true"
 
 frontend:
   image:
@@ -56,6 +57,9 @@ secrets:
   limitlessUsername: ""
   limitlessPassword: ""
   apiKeys: ""
+  adminUsername: ""
+  adminPassword: ""
+  sessionSecretKey: ""
 
 # Percona PostgreSQL Operator CRD
 percona:
