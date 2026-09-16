@@ -30,6 +30,23 @@ def test_resubmit_reminder_task_posts_discord_notice_and_logs_event(monkeypatch,
         assert events[0].severity == "INFO"
 
 
+@respx.mock
+def test_resubmit_reminder_task_includes_dashboard_link_when_configured(monkeypatch, db_session_factory):
+    monkeypatch.setattr("app.db.session.SessionLocal", db_session_factory)
+    monkeypatch.setattr(resubmit_tasks.settings, "discord_webhook_url", WEBHOOK_URL)
+    monkeypatch.setattr(resubmit_tasks.settings, "dashboard_base_url", "https://limitless-org-dashboard.badconfig.com")
+
+    route = respx.post(WEBHOOK_URL).mock(return_value=httpx.Response(204))
+
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = True
+
+    resubmit_tasks.resubmit_reminder_task.delay()
+
+    payload = route.calls.last.request.content.decode()
+    assert "https://limitless-org-dashboard.badconfig.com" in payload
+
+
 def test_resubmit_reminder_task_does_not_perform_resubmission(monkeypatch, db_session_factory):
     """The reminder task must never perform an actual resubmission (no auto-resubmit, #152).
 
