@@ -1,6 +1,8 @@
 import { fireEvent, screen } from "@testing-library/react";
+import { HttpResponse, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithQueryClient } from "../test/renderWithQueryClient";
+import { server } from "../test/server";
 import { Dashboard } from "./Dashboard";
 
 describe("Dashboard", () => {
@@ -79,5 +81,45 @@ describe("Dashboard", () => {
     expect(screen.queryByRole("heading", { name: /status history/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /resubmit application/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /resubmission log/i })).not.toBeInTheDocument();
+  });
+});
+
+describe("Dashboard auth gate", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-25T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("shows a login form on the application tab when unauthenticated", async () => {
+    server.use(http.get("*/api/auth/session", () => HttpResponse.json({ authenticated: false })));
+
+    renderWithQueryClient(<Dashboard />);
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /application overview/i })).not.toBeInTheDocument();
+  });
+
+  it("shows a login form on the admin tab when unauthenticated", async () => {
+    server.use(http.get("*/api/auth/session", () => HttpResponse.json({ authenticated: false })));
+
+    renderWithQueryClient(<Dashboard />);
+    fireEvent.click(screen.getByRole("tab", { name: /admin/i }));
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /system diagnostics/i })).not.toBeInTheDocument();
+  });
+
+  it("does not show a login form on the organizers tab when unauthenticated", async () => {
+    server.use(http.get("*/api/auth/session", () => HttpResponse.json({ authenticated: false })));
+
+    renderWithQueryClient(<Dashboard />);
+    fireEvent.click(screen.getByRole("tab", { name: /organizers/i }));
+
+    expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
+    expect(await screen.findByText("Jun 1: 2")).toBeInTheDocument();
   });
 });

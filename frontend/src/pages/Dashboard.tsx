@@ -3,6 +3,7 @@ import { AdminConfig } from "../components/AdminConfig";
 import { ApplicationStatCards } from "../components/ApplicationStatCards";
 import { Diagnostics } from "../components/Diagnostics";
 import { EventLogViewer } from "../components/EventLogViewer";
+import { LoginForm } from "../components/LoginForm";
 import { OnboardingDelta } from "../components/OnboardingDelta";
 import { OrganizerActivityChart } from "../components/OrganizerActivityChart";
 import { OrganizerProfile } from "../components/OrganizerProfile";
@@ -14,6 +15,7 @@ import { StatusTimeline } from "../components/StatusTimeline";
 import { TabNavigation, type Tab } from "../components/TabNavigation";
 import { TaskTriggers } from "../components/TaskTriggers";
 import { WaitTimeEstimator } from "../components/WaitTimeEstimator";
+import { useAuthSession, useLogout } from "../lib/useAuthSession";
 
 const TABS: Tab[] = [
   { id: "application", label: "My Application" },
@@ -23,30 +25,45 @@ const TABS: Tab[] = [
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
+  const authQuery = useAuthSession();
+  const logout = useLogout();
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-primary">Limitless Organizer Tracker</h1>
-      <TabNavigation tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="flex items-center justify-between">
+        <TabNavigation tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+        {authQuery.data?.authenticated && (
+          <button type="button" onClick={() => logout()} className="btn btn-ghost btn-sm">
+            Log out
+          </button>
+        )}
+      </div>
 
       {activeTab === "application" && (
         <div className="space-y-6">
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Application Overview</h2>
-            <ApplicationStatCards />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Status History</h2>
-            <StatusTimeline />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Resubmit Application</h2>
-            <ResubmitNowButton />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Resubmission Log</h2>
-            <ResubmissionLog />
-          </section>
+          {authQuery.data?.authenticated !== false ? (
+            <>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Application Overview</h2>
+                <ApplicationStatCards />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Status History</h2>
+                <StatusTimeline />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Resubmit Application</h2>
+                <ResubmitNowButton />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Resubmission Log</h2>
+                <ResubmissionLog />
+              </section>
+            </>
+          ) : (
+            <LoginForm onSuccess={() => authQuery.refetch()} />
+          )}
         </div>
       )}
 
@@ -84,22 +101,28 @@ export function Dashboard() {
 
       {activeTab === "admin" && (
         <div className="space-y-6">
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">System Diagnostics</h2>
-            <Diagnostics />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Task Triggers</h2>
-            <TaskTriggers />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Configuration</h2>
-            <AdminConfig />
-          </section>
-          <section className="card bg-base-200 p-4">
-            <h2 className="mb-3 text-lg font-semibold">Event Log</h2>
-            <EventLogViewer />
-          </section>
+          {authQuery.data?.authenticated !== false ? (
+            <>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">System Diagnostics</h2>
+                <Diagnostics />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Task Triggers</h2>
+                <TaskTriggers />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Configuration</h2>
+                <AdminConfig />
+              </section>
+              <section className="card bg-base-200 p-4">
+                <h2 className="mb-3 text-lg font-semibold">Event Log</h2>
+                <EventLogViewer />
+              </section>
+            </>
+          ) : (
+            <LoginForm onSuccess={() => authQuery.refetch()} />
+          )}
         </div>
       )}
     </main>
