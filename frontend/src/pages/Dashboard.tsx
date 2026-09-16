@@ -28,12 +28,23 @@ export function Dashboard() {
   const authQuery = useAuthSession();
   const logout = useLogout();
 
+  // Three-way session-gate state: `isPending` covers the initial round trip (neutral loading
+  // UI, no gated content, no login form); `isError` fails closed to the login form rather than
+  // inheriting whatever `data` last held, so a broken/erroring session check never leaves gated
+  // content exposed indefinitely. Only a resolved, successful check with `authenticated: true`
+  // unlocks the real content.
+  const sessionGateState: "loading" | "authenticated" | "unauthenticated" = authQuery.isPending
+    ? "loading"
+    : authQuery.isError || authQuery.data?.authenticated !== true
+      ? "unauthenticated"
+      : "authenticated";
+
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-primary">Limitless Organizer Tracker</h1>
       <div className="flex items-center justify-between">
         <TabNavigation tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
-        {authQuery.data?.authenticated && (
+        {sessionGateState === "authenticated" && (
           <button type="button" onClick={() => logout()} className="btn btn-ghost btn-sm">
             Log out
           </button>
@@ -42,7 +53,9 @@ export function Dashboard() {
 
       {activeTab === "application" && (
         <div className="space-y-6">
-          {authQuery.data?.authenticated !== false ? (
+          {sessionGateState === "loading" ? (
+            <p className="text-sm text-base-content/60">Checking session…</p>
+          ) : sessionGateState === "authenticated" ? (
             <>
               <section className="card bg-base-200 p-4">
                 <h2 className="mb-3 text-lg font-semibold">Application Overview</h2>
@@ -101,7 +114,9 @@ export function Dashboard() {
 
       {activeTab === "admin" && (
         <div className="space-y-6">
-          {authQuery.data?.authenticated !== false ? (
+          {sessionGateState === "loading" ? (
+            <p className="text-sm text-base-content/60">Checking session…</p>
+          ) : sessionGateState === "authenticated" ? (
             <>
               <section className="card bg-base-200 p-4">
                 <h2 className="mb-3 text-lg font-semibold">System Diagnostics</h2>

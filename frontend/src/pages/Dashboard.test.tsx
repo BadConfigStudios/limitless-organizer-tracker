@@ -32,7 +32,9 @@ describe("Dashboard", () => {
   it("shows the application tab by default with stat cards, status history, resubmit action, and resubmission log", async () => {
     renderWithQueryClient(<Dashboard />);
 
-    expect(screen.getByRole("heading", { name: /application overview/i })).toBeInTheDocument();
+    // The session check settles asynchronously (loading → authenticated), so the gated content
+    // isn't present on the very first render.
+    expect(await screen.findByRole("heading", { name: /application overview/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /status history/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /resubmit application/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resubmit now/i })).toBeInTheDocument();
@@ -62,7 +64,8 @@ describe("Dashboard", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: /admin/i }));
 
-    expect(screen.getByRole("heading", { name: /system diagnostics/i })).toBeInTheDocument();
+    // Same async session-check settling as above.
+    expect(await screen.findByRole("heading", { name: /system diagnostics/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /task triggers/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /configuration/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /event log/i })).toBeInTheDocument();
@@ -121,5 +124,52 @@ describe("Dashboard auth gate", () => {
 
     expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
     expect(await screen.findByText("Jun 1: 2")).toBeInTheDocument();
+  });
+
+  it("shows a neutral loading state on the application tab while the session check is pending", () => {
+    renderWithQueryClient(<Dashboard />);
+
+    // Asserted synchronously, before the session check settles: neither the gated content nor
+    // the login form should render yet.
+    expect(screen.getByText(/checking session/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /application overview/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
+  });
+
+  it("falls back to the login form on the application tab when the session check errors", async () => {
+    server.use(http.get("*/api/auth/session", () => HttpResponse.json({ detail: "boom" }, { status: 500 })));
+
+    renderWithQueryClient(<Dashboard />);
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /application overview/i })).not.toBeInTheDocument();
+  });
+
+  it("falls back to the login form on the admin tab when the session check errors", async () => {
+    server.use(http.get("*/api/auth/session", () => HttpResponse.json({ detail: "boom" }, { status: 500 })));
+
+    renderWithQueryClient(<Dashboard />);
+    fireEvent.click(screen.getByRole("tab", { name: /admin/i }));
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /system diagnostics/i })).not.toBeInTheDocument();
+  });
+
+  it("shows a Log out button when authenticated and re-gates the application tab on click", async () => {
+    let authenticated = true;
+    server.use(
+      http.get("*/api/auth/session", () => HttpResponse.json({ authenticated })),
+      http.post("*/api/auth/logout", () => {
+        authenticated = false;
+        return HttpResponse.json({ authenticated: false });
+      }),
+    );
+
+    renderWithQueryClient(<Dashboard />);
+
+    const logoutButton = await screen.findByRole("button", { name: /log out/i });
+    fireEvent.click(logoutButton);
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
   });
 });
