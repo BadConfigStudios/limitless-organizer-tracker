@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { AdminConfig } from "../components/AdminConfig";
 import { ApplicationStatCards } from "../components/ApplicationStatCards";
 import { Diagnostics } from "../components/Diagnostics";
@@ -23,6 +23,27 @@ const TABS: Tab[] = [
   { id: "admin", label: "Admin" },
 ];
 
+type SessionGateState = "loading" | "authenticated" | "unauthenticated";
+
+interface SessionGatedTabProps {
+  sessionGateState: SessionGateState;
+  children: ReactNode;
+}
+
+// Shared three-way session-gate rendering for tab content that requires authentication: a
+// neutral loading message while the session check is in flight, the tab's real content once
+// authenticated, or the login form otherwise. See the sessionGateState comment in Dashboard for
+// why unauthenticated/error states are treated the same.
+function SessionGatedTab({ sessionGateState, children }: SessionGatedTabProps) {
+  if (sessionGateState === "loading") {
+    return <p className="text-sm text-base-content/60">Checking session…</p>;
+  }
+  if (sessionGateState === "authenticated") {
+    return <>{children}</>;
+  }
+  return <LoginForm />;
+}
+
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const authQuery = useAuthSession();
@@ -33,7 +54,7 @@ export function Dashboard() {
   // inheriting whatever `data` last held, so a broken/erroring session check never leaves gated
   // content exposed indefinitely. Only a resolved, successful check with `authenticated: true`
   // unlocks the real content.
-  const sessionGateState: "loading" | "authenticated" | "unauthenticated" = authQuery.isPending
+  const sessionGateState: SessionGateState = authQuery.isPending
     ? "loading"
     : authQuery.isError || authQuery.data?.authenticated !== true
       ? "unauthenticated"
@@ -53,30 +74,24 @@ export function Dashboard() {
 
       {activeTab === "application" && (
         <div className="space-y-6">
-          {sessionGateState === "loading" ? (
-            <p className="text-sm text-base-content/60">Checking session…</p>
-          ) : sessionGateState === "authenticated" ? (
-            <>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Application Overview</h2>
-                <ApplicationStatCards />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Status History</h2>
-                <StatusTimeline />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Resubmit Application</h2>
-                <ResubmitNowButton />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Resubmission Log</h2>
-                <ResubmissionLog />
-              </section>
-            </>
-          ) : (
-            <LoginForm onSuccess={() => authQuery.refetch()} />
-          )}
+          <SessionGatedTab sessionGateState={sessionGateState}>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Application Overview</h2>
+              <ApplicationStatCards />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Status History</h2>
+              <StatusTimeline />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Resubmit Application</h2>
+              <ResubmitNowButton />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Resubmission Log</h2>
+              <ResubmissionLog />
+            </section>
+          </SessionGatedTab>
         </div>
       )}
 
@@ -114,30 +129,24 @@ export function Dashboard() {
 
       {activeTab === "admin" && (
         <div className="space-y-6">
-          {sessionGateState === "loading" ? (
-            <p className="text-sm text-base-content/60">Checking session…</p>
-          ) : sessionGateState === "authenticated" ? (
-            <>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">System Diagnostics</h2>
-                <Diagnostics />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Task Triggers</h2>
-                <TaskTriggers />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Configuration</h2>
-                <AdminConfig />
-              </section>
-              <section className="card bg-base-200 p-4">
-                <h2 className="mb-3 text-lg font-semibold">Event Log</h2>
-                <EventLogViewer />
-              </section>
-            </>
-          ) : (
-            <LoginForm onSuccess={() => authQuery.refetch()} />
-          )}
+          <SessionGatedTab sessionGateState={sessionGateState}>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">System Diagnostics</h2>
+              <Diagnostics />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Task Triggers</h2>
+              <TaskTriggers />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Configuration</h2>
+              <AdminConfig />
+            </section>
+            <section className="card bg-base-200 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Event Log</h2>
+              <EventLogViewer />
+            </section>
+          </SessionGatedTab>
         </div>
       )}
     </main>

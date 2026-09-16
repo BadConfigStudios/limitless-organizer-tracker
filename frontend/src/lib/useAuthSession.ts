@@ -8,7 +8,7 @@ export function useAuthSession() {
 export function useLogout() {
   const queryClient = useQueryClient();
   return async () => {
-    await logoutRequest();
-    await queryClient.invalidateQueries({ queryKey: ["auth-session"] });
+    const result = await logoutRequest();
+    queryClient.setQueryData(["auth-session"], result);
   };
 }
