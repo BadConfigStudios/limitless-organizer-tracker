@@ -1,5 +1,17 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { filterByDateWindow } from "./dateWindow";
+import { dateWindowToDays, filterByDateWindow } from "./dateWindow";
+
+describe("dateWindowToDays", () => {
+  it("returns undefined for the empty (All time) window", () => {
+    expect(dateWindowToDays("")).toBeUndefined();
+  });
+
+  it("returns a number for 30/90/180", () => {
+    expect(dateWindowToDays("30")).toBe(30);
+    expect(dateWindowToDays("90")).toBe(90);
+    expect(dateWindowToDays("180")).toBe(180);
+  });
+});
 
 describe("filterByDateWindow", () => {
   beforeEach(() => {

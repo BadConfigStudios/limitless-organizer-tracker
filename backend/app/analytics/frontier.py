@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -7,15 +9,20 @@ from app.db.models import OrganizerActivity
 TOP_N_ORGANIZERS = 1000
 
 
-def build_frontier_regression(session: Session):
-    rows = session.execute(
+def build_frontier_regression(session: Session, days: int | None = None):
+    stmt = (
         select(
             OrganizerActivity.organizer_id,
             func.min(OrganizerActivity.first_tournament_date).label("first_tournament_date"),
         )
         .group_by(OrganizerActivity.organizer_id)
-        .order_by(OrganizerActivity.organizer_id.desc())
-        .limit(TOP_N_ORGANIZERS)
+    )
+    if days is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        stmt = stmt.having(func.min(OrganizerActivity.first_tournament_date) >= cutoff)
+
+    rows = session.execute(
+        stmt.order_by(OrganizerActivity.organizer_id.desc()).limit(TOP_N_ORGANIZERS)
     ).all()
     if len(rows) < 2:
         return None, None, None

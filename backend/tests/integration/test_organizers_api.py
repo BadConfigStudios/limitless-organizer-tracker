@@ -414,6 +414,52 @@ def test_get_wait_estimate_caps_points_preserving_frontier(client, monkeypatch):
     assert frontier_ids == {100, 300, 500, 700}
 
 
+def test_get_wait_estimate_with_days_filters_before_regression(client, monkeypatch):
+    import app.analytics.frontier as frontier_module
+
+    fixed_now = _dt(2026, 6, 25)
+    monkeypatch.setattr(
+        frontier_module, "datetime",
+        type("_FixedDatetime", (), {"now": staticmethod(lambda tz=None: fixed_now)}),
+    )
+
+    test_client, session_factory = client
+    with session_factory() as session:
+        session.add_all(
+            [
+                OrganizerActivity(**_activity(100, "PTCG", _dt(2025, 1, 1))),  # outside 90d
+                OrganizerActivity(**_activity(200, "PTCG", _dt(2026, 5, 1))),  # within 90d
+                OrganizerActivity(**_activity(300, "PTCG", _dt(2026, 6, 1))),  # within 90d
+            ]
+        )
+        session.commit()
+
+    response = test_client.get("/api/organizers/wait-estimate", params={"days": 90})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["sample_size"] == 2
+    ids = {p["organizer_id"] for p in body["points"]}
+    assert ids == {200, 300}
+
+
+def test_get_wait_estimate_without_days_is_unchanged(client):
+    test_client, session_factory = client
+    with session_factory() as session:
+        session.add_all(
+            [
+                OrganizerActivity(**_activity(100, "PTCG", _dt(2025, 1, 1))),
+                OrganizerActivity(**_activity(200, "PTCG", _dt(2026, 5, 1))),
+            ]
+        )
+        session.commit()
+
+    response = test_client.get("/api/organizers/wait-estimate")
+
+    assert response.status_code == 200
+    assert response.json()["sample_size"] == 2
+
+
 # ---------------------------------------------------------------------------
 # GET /api/organizers/onboarding-history
 # ---------------------------------------------------------------------------

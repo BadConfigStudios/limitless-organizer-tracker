@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
   ComposedChart,
@@ -13,17 +13,20 @@ import {
 import { ApiError, getWaitEstimate, type WaitEstimate } from "../api/client";
 import { formatEpochDate } from "../lib/formatDate";
 import { toFittedLineData, toFrontierScatterData, toScatterData } from "../lib/waitEstimateChartData";
-import { filterByDateWindow, type DateWindow } from "../lib/dateWindow";
+import { dateWindowToDays, type DateWindow } from "../lib/dateWindow";
 import { DateWindowSelect } from "./DateWindowSelect";
 
 export function WaitTimeEstimator() {
   const [organizerIdInput, setOrganizerIdInput] = useState("");
   const [targetOrganizerId, setTargetOrganizerId] = useState<number | undefined>(undefined);
-  const [dateWindow, setDateWindow] = useState<DateWindow>("");
+  const [dateWindow, setDateWindow] = useState<DateWindow>("90");
+
+  const days = dateWindowToDays(dateWindow);
 
   const estimateQuery = useQuery<WaitEstimate, Error>({
-    queryKey: ["wait-estimate", targetOrganizerId],
-    queryFn: () => getWaitEstimate(targetOrganizerId),
+    queryKey: ["wait-estimate", targetOrganizerId, dateWindow],
+    queryFn: () => getWaitEstimate(targetOrganizerId, days),
+    placeholderData: keepPreviousData,
   });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -39,17 +42,6 @@ export function WaitTimeEstimator() {
     }
     setTargetOrganizerId(parsed);
   };
-
-  const filteredEstimate: WaitEstimate | undefined = estimateQuery.data
-    ? {
-        ...estimateQuery.data,
-        points: filterByDateWindow(
-          estimateQuery.data.points,
-          (p) => p.first_tournament_date,
-          dateWindow,
-        ),
-      }
-    : undefined;
 
   return (
     <div>
@@ -126,13 +118,13 @@ export function WaitTimeEstimator() {
               <Tooltip />
               <Scatter
                 name="All organizers"
-                data={toScatterData(filteredEstimate!)}
+                data={toScatterData(estimateQuery.data!)}
                 dataKey="organizerId"
                 fill="#75d1f0"
               />
               <Scatter
                 name="Frontier (fastest onboarding)"
-                data={toFrontierScatterData(filteredEstimate!)}
+                data={toFrontierScatterData(estimateQuery.data!)}
                 dataKey="organizerId"
                 fill="#ff7598"
               />

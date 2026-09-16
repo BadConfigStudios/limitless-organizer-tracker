@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithQueryClient } from "../test/renderWithQueryClient";
@@ -31,6 +31,8 @@ describe("WaitTimeEstimator", () => {
   it("renders the scatter chart on load without requiring organizer ID input", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
 
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
+
     // slope and R² are rendered without user submitting a form
     expect(await screen.findByText(/0\.5000/)).toBeInTheDocument();
     expect(screen.getByText(/0\.950/)).toBeInTheDocument();
@@ -40,6 +42,8 @@ describe("WaitTimeEstimator", () => {
   it("does not show projected active date until an organizer ID is submitted", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
 
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
+
     // Wait for initial chart to render
     await screen.findByText(/0\.5000/);
     expect(screen.queryByText(/projected active date/i)).not.toBeInTheDocument();
@@ -47,6 +51,9 @@ describe("WaitTimeEstimator", () => {
 
   it("clears the projected date when the input is cleared and re-submitted", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
+
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
+    await screen.findByText(/0\.5000/);
 
     // Submit an organizer ID to show the projection
     fireEvent.change(screen.getByLabelText(/organizer id/i), { target: { value: "400" } });
@@ -63,6 +70,7 @@ describe("WaitTimeEstimator", () => {
   it("shows projected active date after submitting an organizer ID", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
 
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
     await screen.findByText(/0\.5000/);
 
     fireEvent.change(screen.getByLabelText(/organizer id/i), { target: { value: "400" } });
@@ -74,6 +82,8 @@ describe("WaitTimeEstimator", () => {
 
   it("shows the frontier size stat on load", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
+
+    fireEvent.change(screen.getByLabelText(/date range/i), { target: { value: "" } });
 
     expect(await screen.findByText(/frontier organizers/i)).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
@@ -104,25 +114,36 @@ describe("WaitTimeEstimator", () => {
     expect(screen.queryByText(/not enough data/i)).not.toBeInTheDocument();
   });
 
-  it("renders a date window selector defaulting to All time", async () => {
+  it("renders a date window selector defaulting to Last 90 days", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
 
-    await screen.findByText(/0\.5000/);
+    await screen.findByText(/0\.2000/);
     const dateSelect = screen.getByLabelText(/date range/i);
-    expect(dateSelect).toHaveDisplayValue("All time");
+    expect(dateSelect).toHaveDisplayValue("Last 90 days");
   });
 
-  it("keeps stats unchanged when date window is changed", async () => {
+  it("defaults to a 90-day window and requests days=90 on load", async () => {
     renderWithQueryClient(<WaitTimeEstimator />);
 
-    await screen.findByText(/0\.5000/);
-    expect(screen.getByText(/0\.950/)).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
+    // waitEstimate90d's stats (slope 0.2, R² 0.8, sample_size 2) prove days=90 was sent
+    expect(await screen.findByText(/0\.2000/)).toBeInTheDocument();
+    expect(screen.getByText(/0\.800/)).toBeInTheDocument();
+    const sampleSizeStat = screen.getByText("Sample size").closest<HTMLElement>(".stat");
+    expect(within(sampleSizeStat!).getByText("2")).toBeInTheDocument();
+    const dateSelect = screen.getByLabelText(/date range/i);
+    expect(dateSelect).toHaveDisplayValue("Last 90 days");
+  });
+
+  it("recalculates the regression when the date window changes", async () => {
+    renderWithQueryClient(<WaitTimeEstimator />);
+
+    await screen.findByText(/0\.2000/); // initial 90-day default
 
     const dateSelect = screen.getByLabelText(/date range/i);
-    fireEvent.change(dateSelect, { target: { value: "30" } });
+    fireEvent.change(dateSelect, { target: { value: "" } }); // switch to All time
 
-    expect(screen.getByText(/0\.5000/)).toBeInTheDocument();
+    // waitEstimate's stats (slope 0.5, R² 0.95, sample_size 5) prove the query re-ran without days
+    expect(await screen.findByText(/0\.5000/)).toBeInTheDocument();
     expect(screen.getByText(/0\.950/)).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
   });

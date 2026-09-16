@@ -60,9 +60,10 @@ def _predict_date(result, organizer_id: int) -> date:
 @router.get("/organizers/wait-estimate", response_model=WaitEstimateOut)
 def get_wait_estimate(
     organizer_id: int | None = Query(None),
+    days: int | None = Query(None),
     db: Session = Depends(get_db),
 ) -> WaitEstimateOut:
-    points, frontier_points, result = build_frontier_regression(db)
+    points, frontier_points, result = build_frontier_regression(db, days=days)
     if points is None:
         raise HTTPException(status_code=404, detail="not enough activity data to estimate")
 
