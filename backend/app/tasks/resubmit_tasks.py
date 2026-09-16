@@ -108,7 +108,7 @@ def resubmit_reminder_task() -> None:
 
     discord_notified = False
     try:
-        response = post_reminder_notice(settings.discord_webhook_url, reminded_at)
+        response = post_reminder_notice(settings.discord_webhook_url, reminded_at, link=settings.dashboard_base_url)
         discord_notified = response.status_code < 300
     except httpx.HTTPError:
         discord_notified = False

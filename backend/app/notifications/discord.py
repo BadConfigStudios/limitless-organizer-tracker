@@ -38,12 +38,15 @@ def post_status_update_notice(
     return httpx.post(webhook_url, json={"content": message})
 
 
-def build_reminder_message(timestamp: datetime) -> str:
+def build_reminder_message(timestamp: datetime, link: str = "") -> str:
     """Build the Discord message content for a resubmission reminder."""
-    return _REMINDER_TEMPLATE.format(timestamp=timestamp.isoformat())
+    message = _REMINDER_TEMPLATE.format(timestamp=timestamp.isoformat())
+    if link:
+        message = f"{message}\n{link}"
+    return message
 
 
-def post_reminder_notice(webhook_url: str, timestamp: datetime) -> httpx.Response:
+def post_reminder_notice(webhook_url: str, timestamp: datetime, link: str = "") -> httpx.Response:
     """Post a Discord notification reminding the user to resubmit manually."""
-    message = build_reminder_message(timestamp)
+    message = build_reminder_message(timestamp, link)
     return httpx.post(webhook_url, json={"content": message})

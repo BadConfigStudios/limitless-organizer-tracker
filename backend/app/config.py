@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     limitless_application_id: str = ""
 
     discord_webhook_url: str = ""
+    dashboard_base_url: str = ""
 
     cors_allowed_origins: str = "http://localhost:5173"
 
