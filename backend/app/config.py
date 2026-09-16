@@ -37,5 +37,10 @@ class Settings(BaseSettings):
 
     api_keys: str = ""
 
+    admin_username: str = ""
+    admin_password: str = ""
+    session_secret_key: str = ""
+    session_cookie_secure: bool = True
+
 
 settings = Settings()

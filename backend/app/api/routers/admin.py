@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.api.auth import require_api_key
+from app.api.auth import require_api_key, require_session
 from app.api.schemas import (
     AdminConfigOut,
     AdminConfigUpdate,
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/api/admin",
     tags=["admin"],
-    dependencies=[Depends(require_api_key)],
+    dependencies=[Depends(require_api_key), Depends(require_session)],
 )
 
 TASK_TRIGGERS = [

@@ -9,3 +9,4 @@ data:
   LIMITLESS_BASE_URL: {{ .Values.backend.env.LIMITLESS_BASE_URL | quote }}
   LIMITLESS_APPLICATION_ID: {{ .Values.backend.env.LIMITLESS_APPLICATION_ID | quote }}
   DASHBOARD_BASE_URL: {{ .Values.backend.env.DASHBOARD_BASE_URL | quote }}
+  SESSION_COOKIE_SECURE: {{ .Values.backend.env.SESSION_COOKIE_SECURE | quote }}
