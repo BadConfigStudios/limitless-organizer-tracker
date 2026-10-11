@@ -73,7 +73,7 @@ async function getJson<T>(path: string): Promise<T> {
   if (API_KEY) {
     headers["X-API-Key"] = API_KEY;
   }
-  const response = await fetch(`${API_BASE_URL}${path}`, { headers });
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers, credentials: "include" });
   if (!response.ok) {
     throw new ApiError(`Request to ${path} failed with status ${response.status}`, response.status);
   }
@@ -220,11 +220,28 @@ async function postJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
     headers,
+    credentials: "include",
   });
   if (!response.ok) {
     throw new ApiError(`Request to ${path} failed with status ${response.status}`, response.status);
   }
   return (await response.json()) as T;
+}
+
+async function parseErrorDetail(response: Response, path: string): Promise<string> {
+  let detail = `Request to ${path} failed with status ${response.status}`;
+  try {
+    const err = (await response.json()) as { detail?: string | unknown[] };
+    if (typeof err.detail === "string") {
+      detail = err.detail;
+    } else if (Array.isArray(err.detail) && err.detail.length > 0) {
+      const first = err.detail[0] as { msg?: string };
+      if (first.msg) detail = first.msg;
+    }
+  } catch {
+    // response body not JSON — keep generic message
+  }
+  return detail;
 }
 
 async function putJson<T>(path: string, body: unknown): Promise<T> {
@@ -235,22 +252,11 @@ async function putJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "PUT",
     headers,
+    credentials: "include",
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    let detail = `Request to ${path} failed with status ${response.status}`;
-    try {
-      const err = (await response.json()) as { detail?: string | unknown[] };
-      if (typeof err.detail === "string") {
-        detail = err.detail;
-      } else if (Array.isArray(err.detail) && err.detail.length > 0) {
-        const first = err.detail[0] as { msg?: string };
-        if (first.msg) detail = first.msg;
-      }
-    } catch {
-      // response body not JSON — keep generic message
-    }
-    throw new ApiError(detail, response.status);
+    throw new ApiError(await parseErrorDetail(response, path), response.status);
   }
   return (await response.json()) as T;
 }
@@ -289,4 +295,37 @@ export function triggerTask(endpoint: string): Promise<unknown> {
     throw new ApiError(`Invalid task endpoint: ${endpoint}`, 400);
   }
   return postJson<unknown>(endpoint);
+}
+
+async function postJsonBody<T>(path: string, body: unknown): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (API_KEY) {
+    headers["X-API-Key"] = API_KEY;
+  }
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new ApiError(await parseErrorDetail(response, path), response.status);
+  }
+  return (await response.json()) as T;
+}
+
+export interface SessionStatus {
+  authenticated: boolean;
+}
+
+export function getSession(): Promise<SessionStatus> {
+  return getJson<SessionStatus>("/api/auth/session");
+}
+
+export function login(username: string, password: string): Promise<SessionStatus> {
+  return postJsonBody<SessionStatus>("/api/auth/login", { username, password });
+}
+
+export function logout(): Promise<SessionStatus> {
+  return postJson<SessionStatus>("/api/auth/logout");
 }

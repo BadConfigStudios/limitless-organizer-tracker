@@ -271,4 +271,7 @@ export const handlers = [
   }),
   http.get("*/api/admin/tasks", () => HttpResponse.json(adminTasks)),
   http.post("*/api/tasks/*", () => HttpResponse.json({ status: "triggered" })),
+  http.get("*/api/auth/session", () => HttpResponse.json({ authenticated: true })),
+  http.post("*/api/auth/login", () => HttpResponse.json({ authenticated: true })),
+  http.post("*/api/auth/logout", () => HttpResponse.json({ authenticated: false })),
 ];
